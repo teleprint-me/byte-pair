@@ -11,7 +11,7 @@ Blog Tutorial: https://leimao.github.io/blog/Byte-Pair-Encoding/
 
 import collections
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
 
 @dataclass(frozen=True)
@@ -87,8 +87,17 @@ def sort_tokens(
 
 
 def map_corpus(vocab: Vocabulary) -> Vocabulary:
+    """
+    Map tokens in the vocabulary to their original words and calculate token frequencies.
+
+    Args:
+        vocab (Vocabulary): The vocabulary object containing token frequency information.
+
+    Returns:
+        Vocabulary: The updated vocabulary object with tokenization mapping and frequencies.
+    """
     vocab.frequency = collections.defaultdict(int)
-    vocab.mapping = collections.defaultdict(List[str])
+    vocab.mapping = dict()
 
     for word, frequency in vocab.collection.items():
         split_word = word.split()  # Use space delimiter
