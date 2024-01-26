@@ -10,8 +10,8 @@ Blog Tutorial: https://leimao.github.io/blog/Byte-Pair-Encoding/
 """
 
 import collections
-from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Tuple, Union
 
 
 @dataclass(frozen=True)
@@ -21,15 +21,17 @@ class TokenConstants:
     unknown: str = "</u>"
 
 
+@dataclass
 class Vocabulary:
-    def __init__(
-        self,
-        token_constants: Optional[TokenConstants] = None,
-        n_merges: Optional[int] = 10000,
-    ):
-        self.n_merges = n_merges
-        self.token_constants = token_constants if token_constants else TokenConstants()
-        self.table = collections.defaultdict(int)
+    n_merges: Optional[int] = 10000
+    token_constants: Optional[TokenConstants] = field(default_factory=TokenConstants)
+    collection: Dict[str, int] = field(
+        default_factory=lambda: collections.defaultdict(int)
+    )
+    frequency: Dict[str, int] = field(
+        default_factory=lambda: collections.defaultdict(int)
+    )
+    map: Dict[str, List[str]] = field(default_factory=dict)
 
 
 def get_token_length(token: str, token_constants: TokenConstants) -> int:
