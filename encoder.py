@@ -31,7 +31,7 @@ class Vocabulary:
     frequency: Dict[str, int] = field(
         default_factory=lambda: collections.defaultdict(int)
     )
-    map: Dict[str, List[str]] = field(default_factory=dict)
+    mapping: Dict[str, List[str]] = field(default_factory=dict)
 
 
 def get_token_length(token: str, token_constants: TokenConstants) -> int:
@@ -84,6 +84,20 @@ def sort_tokens(
         reverse=True,
     )
     return [token for (token, freq) in sorted_tokens_tuple]
+
+
+def map_corpus(vocab: Vocabulary) -> Vocabulary:
+    vocab.frequency = collections.defaultdict(int)
+    vocab.mapping = collections.defaultdict(List[str])
+
+    for word, frequency in vocab.collection.items():
+        split_word = word.split()  # Use space delimiter
+        original_word = "".join(split_word)  # Omit space delimiter
+        for token in split_word:
+            vocab.frequency[token] += frequency
+        vocab.mapping[original_word] = split_word
+
+    return vocab
 
 
 def tokenize(text: str) -> List[str]:
