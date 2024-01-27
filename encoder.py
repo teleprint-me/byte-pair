@@ -300,7 +300,7 @@ def main(args):
     with open(args.corpus_file, "r") as file:
         vocab = get_vocabulary(
             corpus=file.readlines(),
-            n_merges=args.num_merges,
+            n_merges=args.n_merges,
             token_constants=TokenConstants(),
         )
 
@@ -350,7 +350,7 @@ if __name__ == "__main__":
         help="Path to the corpus file for vocabulary creation.",
     )
     parser.add_argument(
-        "--num_merges",
+        "--n_merges",
         type=int,
         default=10000,
         help="Number of merges to perform during vocabulary creation.",
