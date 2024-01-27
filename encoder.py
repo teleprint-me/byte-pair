@@ -9,6 +9,7 @@ Referenced Paper: https://paperswithcode.com/method/bpe
 Blog Tutorial: https://leimao.github.io/blog/Byte-Pair-Encoding/
 """
 
+import argparse
 import collections
 import re
 from dataclasses import dataclass, field
@@ -61,7 +62,7 @@ def sort_key(item: Tuple[str, int], token_constants: TokenConstants) -> Tuple[in
     Returns:
         Tuple[int, int]: A tuple containing token length and frequency.
     """
-    return (get_token_length(item[0], token_constants.stop), item[1])
+    return (get_token_length(item[0], token_constants), item[1])
 
 
 def sort_tokens(
@@ -293,17 +294,17 @@ def segment(word: str) -> List[str]:
     pass
 
 
-def main():
+def main(args):
     vocab = None
 
-    with open("taming_shrew.md", "r") as file:
+    with open(args.corpus_file, "r") as file:
         vocab = get_vocabulary(
             corpus=file.readlines(),
-            n_merges=10000,
+            n_merges=args.num_merges,
             token_constants=TokenConstants(),
         )
 
-    for _ in tqdm.tqdm(range(vocab.n_merges), desc="Merge vocabulary"):
+    for _ in tqdm.tqdm(range(vocab.n_merges), desc="Merging vocabulary"):
         vocab_frequency, vocab_mapping = map_corpus(vocab=vocab)
         token_pair_frequencies = calculate_token_pair_frequencies(vocab=vocab)
 
@@ -313,8 +314,53 @@ def main():
         top_token_pair = max(token_pair_frequencies, key=token_pair_frequencies.get)
         vocab = merge_token_pair(vocab=vocab, token_pair=top_token_pair)
 
-    sorted_tokens = sort_tokens(token_frequencies=vocab_frequency)
+    sorted_tokens = sort_tokens(
+        token_frequencies=vocab_frequency,
+        token_constants=vocab.token_constants,
+    )
+    given_token = args.given_token
+
+    if given_token in vocab_mapping:
+        # Tokenizer knows the given word
+        results: List[str] = tokenize_string(
+            string=given_token,
+            sorted_tokens=sorted_tokens,
+            unknown_token=vocab.token_constants.unknown,
+        )
+    else:
+        # Tokenizer failed to recognize the given word
+        results: List[str] = tokenize_string(
+            string=given_token,
+            sorted_tokens=sorted_tokens,
+            unknown_token=vocab.token_constants.unknown,
+        )
+
+    for result in results:
+        print(result)
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description="Tokenize text using Byte-Pair Encoding."
+    )
+    parser.add_argument(
+        "--corpus_file",
+        type=str,
+        required=True,
+        help="Path to the corpus file for vocabulary creation.",
+    )
+    parser.add_argument(
+        "--num_merges",
+        type=int,
+        default=10000,
+        help="Number of merges to perform during vocabulary creation.",
+    )
+    parser.add_argument(
+        "--given_token",
+        type=str,
+        required=True,
+        help="The token to tokenize using the generated vocabulary.",
+    )
+
+    args = parser.parse_args()
+    main(args)
