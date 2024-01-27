@@ -109,6 +109,35 @@ def map_corpus(vocab: Vocabulary) -> Vocabulary:
     return vocab
 
 
+def get_vocabulary(corpus: List[str], vocab: Vocabulary) -> Vocabulary:
+    """
+    Get the vocabulary based on the given corpus.
+
+    Args:
+        corpus (list): List of strings representing the text corpus.
+        vocab (Vocabulary): The Vocabulary instance to update.
+
+    Returns:
+        Vocabulary: The updated Vocabulary instance containing the computed vocabulary.
+
+    Raises:
+        ValueError: If corpus is empty or contains non-string elements.
+    """
+    if not corpus or not all(isinstance(text, str) for text in corpus):
+        raise ValueError("Corpus must be a list of strings.")
+
+    # Break down corpus into lines.
+    for line in corpus:
+        # Break down the line into words.
+        for word in line.split():
+            # Group space-separated characters by bounding them with a stop token.
+            token = " ".join(list(word)) + vocab.token_constants.stop
+            # Add token to vocab using a unique integer.
+            vocab.collection[token] += 1
+
+    return vocab
+
+
 def tokenize(text: str) -> List[str]:
     # Implement tokenization logic here
     pass
