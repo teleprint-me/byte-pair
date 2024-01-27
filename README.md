@@ -28,7 +28,7 @@ Follow these steps to get started with Byte-Pair Encoder:
 3. Run the code to tokenize text and analyze token statistics using the included text.
 
    ```sh
-   python encoder.py --corpus_file taming_shrew.md --given_token "red</w>" --n_merges 10000
+   python encoder.py --corpus_file samples/taming_shrew.md --given_token "red</w>" --n_merges 10000
    ```
 
 ## Usage
