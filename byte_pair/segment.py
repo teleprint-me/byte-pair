@@ -12,10 +12,33 @@ import argparse
 import re
 from typing import List
 
-TOKEN_REGEX = re.compile(r"\w+|[^\w\s]|'\w+", re.UNICODE)
+TOKEN_REGEX = re.compile(
+    r"""
+    # Match email addresses
+    [a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}|
+    # Match URLs
+    http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+|
+    # Match words with apostrophes
+    \w+'\w+|
+    # Match other words
+    \w+|
+    # Match any non-whitespace character
+    [^\w\s]""",
+    re.VERBOSE | re.UNICODE,
+)
 
 
-def segment(text: str) -> List[str]:
+def clean_text(text: str) -> str:
+    # Example: Replace multiple spaces with a single space
+    text = re.sub(r"\s+", " ", text)
+    # Add other cleaning rules as necessary
+    return text
+
+
+def segment(text: str, lower: bool = False) -> List[str]:
+    if lower:
+        text = text.lower()
+    text = clean_text(text)
     return TOKEN_REGEX.findall(text)
 
 
