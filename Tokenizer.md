@@ -98,7 +98,7 @@ These components assume a pivotal role in shaping the efficacy of NLP applicatio
 
 **Tokenization with BPE**
 
-Byte Pair Encoding (BPE) is a widely-used subword tokenization technique that efficiently handles out-of-vocabulary words and complex morphological structures. It starts with an initial vocabulary of characters or subword units and iteratively merges the most frequent pairs to form new subwords.
+Byte Pair Encoding (BPE) is a widely-used subword tokenization technique that efficiently handles out-of-vocabulary words and complex morphological structures. It starts with an initial vocabulary of characters or subword units and iteratively merges the most frequent pairs to form new subwords. This section provides a detailed guide to implementing BPE tokenization, covering each step in the process.
 
 Here's a step-by-step guide to implementing BPE tokenization:
 
@@ -122,7 +122,7 @@ Here's a step-by-step guide to implementing BPE tokenization:
 
 10. **Save Vocabulary**: Save the finalized model vocabulary to a file for use in both training and inference.
 
-This method helps in managing rare words and maintaining a balance between vocabulary size and coverage. Special considerations like handling rare tokens, including padding and mask tokens for transformer models, and saving the finalized vocabulary are also crucial steps in this process.
+Implementing BPE tokenization involves a step-by-step approach, from initializing the vocabulary to saving the finalized model vocabulary. This method is instrumental in managing rare words while striking a balance between vocabulary size and coverage. Special considerations, such as handling rare tokens and including padding and mask tokens for transformer models, are vital to this process. With this comprehensive understanding, you'll be well-prepared to employ BPE tokenization effectively in your NLP tasks.
 
 ### Conclusion
 
