@@ -14,7 +14,7 @@ Understanding the intricacies of tokenization is imperative for individuals emba
 
 ### Training an NLP Model
 
-Training an NLP model encompasses several intricate steps, with the creation of a model vocabulary being a cornerstone. Let's delve into the intricacies of training an NLP model:
+Training an NLP model encompasses several intricate steps, with the creation of a model vocabulary being a cornerstone. In this section, we'll delve into the intricacies of training an NLP model and explore the key components of an NLP tokenizer. These components play a vital role in text data processing, serving as the foundation for various NLP applications.
 
 1. **Data Collection**: The foundation of an effective NLP model lies in gathering a diverse and high-quality dataset. The variety and richness of this data are crucial in shaping the model's comprehension and capabilities.
 
@@ -36,7 +36,7 @@ Training an NLP model encompasses several intricate steps, with the creation of 
 
 10. **Deployment**: Upon successful training and evaluation, the model is ready for deployment, enabling a multitude of NLP tasks, including text generation, sentiment analysis, translation, and question-answering.
 
-Training an NLP model is a meticulous process that combines data collection, preprocessing, vocabulary construction, training with various neural architectures, fine-tuning, and evaluation. It demands proficiency in both machine learning and NLP techniques.
+Training an NLP model is a meticulous process that combines data collection, preprocessing, vocabulary construction, training with various neural architectures, fine-tuning, and evaluation. Proficiency in both machine learning and NLP techniques is essential as we transition to explore the key components of an NLP tokenizer in the next section.
 
 ### Components of an NLP Tokenizer
 
