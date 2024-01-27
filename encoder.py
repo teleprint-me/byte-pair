@@ -189,6 +189,82 @@ def merge_token_pair(vocab: Vocabulary, token_pair: Tuple[str, str]) -> Vocabula
     )
 
 
+def find_token_matches(token: str, string: str) -> List[Tuple[int, int]]:
+    """
+    Find all matches of a given token in the string.
+
+    Args:
+        token (str): The token to find in the string.
+        string (str): The string to search within.
+
+    Returns:
+        List[Tuple[int, int]]: A list of tuples representing the start and end positions of each match.
+    """
+    token_reg = re.escape(token.replace(".", "[.]"))
+    return [(m.start(0), m.end(0)) for m in re.finditer(token_reg, string)]
+
+
+def tokenize_substring(substring, sorted_tokens, unknown_token="</u>"):
+    """
+    Tokenize a substring using sorted tokens.
+
+    Args:
+        substring (str): The substring to tokenize.
+        sorted_tokens (List[str]): The list of sorted tokens for tokenization.
+        unknown_token (str): The token to use for unknown sequences.
+
+    Returns:
+        List[str]: A list of tokens representing the tokenized substring.
+    """
+    if substring == "":
+        return []
+
+    tokens = []
+    i = 0
+    while i < len(substring):
+        # Find the longest token that matches the start of the substring
+        for token in sorted_tokens:
+            if substring[i:].startswith(token):
+                tokens.append(token)
+                i += len(token)
+                break
+        else:
+            # No matching token found; use unknown token and advance by one character
+            tokens.append(unknown_token)
+            i += 1
+
+    return tokens
+
+
+def tokenize_word(string, sorted_tokens, unknown_token="</u>"):
+    """
+    Tokenize a string based on a list of sorted tokens.
+
+    Args:
+        string (str): The string to tokenize.
+        sorted_tokens (List[str]): The list of sorted tokens for tokenization.
+        unknown_token (str): The token to use for unknown sequences.
+
+    Returns:
+        List[str]: A list of tokens representing the tokenized string.
+    """
+    string_tokens = []
+    while string:
+        matched = False
+        for token in sorted_tokens:
+            if string.startswith(token):
+                string_tokens.append(token)
+                string = string[len(token) :]
+                matched = True
+                break
+
+        if not matched:
+            string_tokens.append(unknown_token)
+            string = string[1:]  # Move forward by one character
+
+    return string_tokens
+
+
 def tokenize(text: str) -> List[str]:
     # Implement tokenization logic here
     pass
