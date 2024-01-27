@@ -14,6 +14,8 @@ import re
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
+import tqdm
+
 
 @dataclass(frozen=True)
 class TokenConstants:
@@ -303,7 +305,9 @@ def main():
 
     vocab_frequency, vocab_mapping = map_corpus(vocab=vocab)
 
-    for _ in range(10000):  # Perform 10,000 merges
+    for _ in tqdm.tqdm(
+        range(10000), desc="Merging vocabulary"
+    ):  # Perform 10,000 merges
         token_pair_frequencies = calculate_token_pair_frequencies(vocab=vocab)
 
         if not token_pair_frequencies:
@@ -311,8 +315,6 @@ def main():
 
         top_token_pair = max(token_pair_frequencies, key=token_pair_frequencies.get)
         vocab = merge_token_pair(vocab=vocab, token_pair=top_token_pair)
-
-    print(vocab)
 
 
 if __name__ == "__main__":
