@@ -303,11 +303,8 @@ def main():
             token_constants=TokenConstants(),
         )
 
-    vocab_frequency, vocab_mapping = map_corpus(vocab=vocab)
-
-    for _ in tqdm.tqdm(
-        range(10000), desc="Merging vocabulary"
-    ):  # Perform 10,000 merges
+    for _ in tqdm.tqdm(range(vocab.n_merges), desc="Merge vocabulary"):
+        vocab_frequency, vocab_mapping = map_corpus(vocab=vocab)
         token_pair_frequencies = calculate_token_pair_frequencies(vocab=vocab)
 
         if not token_pair_frequencies:
@@ -315,6 +312,8 @@ def main():
 
         top_token_pair = max(token_pair_frequencies, key=token_pair_frequencies.get)
         vocab = merge_token_pair(vocab=vocab, token_pair=top_token_pair)
+
+    sorted_tokens = sort_tokens(token_frequencies=vocab_frequency)
 
 
 if __name__ == "__main__":
