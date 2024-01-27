@@ -182,6 +182,9 @@ def merge_token_pair(vocab: Vocabulary, token_pair: Tuple[str, str]) -> Vocabula
         merged_token_pair = bigram_pattern.sub("".join(token_pair), token)
         output_collection[merged_token_pair] += frequency
 
+    # Consider using
+    #   vocab.collection = output_collection
+    # if memory becomes an issue upon scaling.
     return Vocabulary(
         collection=output_collection,
         n_merges=vocab.n_merges,
@@ -290,12 +293,25 @@ def segment(word: str) -> List[str]:
 
 def main():
     vocab = None
+
     with open("taming_shrew.md", "r") as file:
         vocab = get_vocabulary(
             corpus=file.readlines(),
             n_merges=10000,
             token_constants=TokenConstants(),
         )
+
+    vocab_frequency, vocab_mapping = map_corpus(vocab=vocab)
+
+    for _ in range(10000):  # Perform 10,000 merges
+        token_pair_frequencies = calculate_token_pair_frequencies(vocab=vocab)
+
+        if not token_pair_frequencies:
+            break
+
+        top_token_pair = max(token_pair_frequencies, key=token_pair_frequencies.get)
+        vocab = merge_token_pair(vocab=vocab, token_pair=top_token_pair)
+
     print(vocab)
 
 
