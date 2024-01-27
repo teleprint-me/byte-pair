@@ -10,6 +10,7 @@ Blog Tutorial: https://leimao.github.io/blog/Byte-Pair-Encoding/
 """
 
 import collections
+import re
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
@@ -146,7 +147,7 @@ def calculate_token_pair_frequencies(vocab: Vocabulary) -> Dict[Tuple[str, str],
     Returns:
         dict: A dictionary mapping token pairs to their frequencies.
     """
-    token_pairs = collections.defaultdict(int)
+    token_pair_frequencies = collections.defaultdict(int)
 
     for token, frequency in vocab.collection.items():
         symbols = token.split()
@@ -155,9 +156,37 @@ def calculate_token_pair_frequencies(vocab: Vocabulary) -> Dict[Tuple[str, str],
             current_symbol = symbols[step]  # get current step
             next_symbol = symbols[step + 1]  # then get next step
             pair = (current_symbol, next_symbol)
-            token_pairs[pair] += frequency
+            token_pair_frequencies[pair] += frequency
 
-    return token_pairs
+    return token_pair_frequencies
+
+
+def merge_token_pair(vocab: Vocabulary, token_pair: Tuple[str, str]) -> Vocabulary:
+    """
+    Merge tokens in the vocabulary based on a given pair.
+
+    Args:
+        vocab (Vocabulary): The Vocabulary instance containing the token frequency information.
+        token_pair (tuple): A tuple containing two strings representing the pair of tokens to merge.
+
+    Returns:
+        Vocabulary: The updated Vocabulary instance with merged tokens.
+    """
+    output_collection = collections.defaultdict(int)
+    lookbehind = r"(?<!\S)"
+    spaced_token_pair = re.escape(" ".join(token_pair))
+    lookahead = r"(?!\S)"
+    bigram_pattern = re.compile(lookbehind + spaced_token_pair + lookahead)
+
+    for token, frequency in vocab.collection.items():
+        merged_token_pair = bigram_pattern.sub("".join(token_pair), token)
+        output_collection[merged_token_pair] += frequency
+
+    return Vocabulary(
+        collection=output_collection,
+        n_merges=vocab.n_merges,
+        token_constants=vocab.token_constants,
+    )
 
 
 def tokenize(text: str) -> List[str]:
