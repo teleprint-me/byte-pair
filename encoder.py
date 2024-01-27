@@ -23,15 +23,11 @@ class TokenConstants:
 
 @dataclass
 class Vocabulary:
-    n_merges: Optional[int] = 10000
-    token_constants: Optional[TokenConstants] = field(default_factory=TokenConstants)
     collection: Dict[str, int] = field(
         default_factory=lambda: collections.defaultdict(int)
     )
-    frequency: Dict[str, int] = field(
-        default_factory=lambda: collections.defaultdict(int)
-    )
-    mapping: Dict[str, List[str]] = field(default_factory=dict)
+    n_merges: Optional[int] = 10000
+    token_constants: Optional[TokenConstants] = field(default_factory=TokenConstants)
 
 
 def get_token_length(token: str, token_constants: TokenConstants) -> int:
@@ -86,7 +82,7 @@ def sort_tokens(
     return [token for (token, freq) in sorted_tokens_tuple]
 
 
-def map_corpus(vocab: Vocabulary) -> Vocabulary:
+def map_corpus(vocab: Vocabulary) -> Tuple[Dict[str, int], Dict[str, str]]:
     """
     Map tokens in the vocabulary to their original words and calculate token frequencies.
 
@@ -96,26 +92,26 @@ def map_corpus(vocab: Vocabulary) -> Vocabulary:
     Returns:
         Vocabulary: The updated vocabulary object with tokenization mapping and frequencies.
     """
-    vocab.frequency = collections.defaultdict(int)
-    vocab.mapping = dict()
+    vocab_frequency = collections.defaultdict(int)
+    vocab_mapping = dict()
 
     for word, frequency in vocab.collection.items():
         split_word = word.split()  # Use space delimiter
         original_word = "".join(split_word)  # Omit space delimiter
         for token in split_word:
-            vocab.frequency[token] += frequency
-        vocab.mapping[original_word] = split_word
+            vocab_frequency[token] += frequency
+        vocab_mapping[original_word] = split_word
 
-    return vocab
+    return vocab_frequency, vocab_mapping
 
 
-def get_vocabulary(corpus: List[str], vocab: Vocabulary) -> Vocabulary:
+def get_vocabulary(corpus: List[str], **kwargs) -> Vocabulary:
     """
     Get the vocabulary based on the given corpus.
 
     Args:
         corpus (list): List of strings representing the text corpus.
-        vocab (Vocabulary): The Vocabulary instance to update.
+        kwargs (dict): Arguments passed to Vocabulary constructor.
 
     Returns:
         Vocabulary: The updated Vocabulary instance containing the computed vocabulary.
@@ -125,6 +121,8 @@ def get_vocabulary(corpus: List[str], vocab: Vocabulary) -> Vocabulary:
     """
     if not corpus or not all(isinstance(text, str) for text in corpus):
         raise ValueError("Corpus must be a list of strings.")
+
+    vocab = Vocabulary(**kwargs)
 
     # Break down corpus into lines.
     for line in corpus:
@@ -136,6 +134,30 @@ def get_vocabulary(corpus: List[str], vocab: Vocabulary) -> Vocabulary:
             vocab.collection[token] += 1
 
     return vocab
+
+
+def calculate_token_pair_frequencies(vocab: Vocabulary) -> Dict[Tuple[str, str], int]:
+    """
+    Calculate token pair frequencies based on the provided vocabulary.
+
+    Args:
+        vocab (Vocabulary): The Vocabulary instance containing the token frequency information.
+
+    Returns:
+        dict: A dictionary mapping token pairs to their frequencies.
+    """
+    token_pairs = collections.defaultdict(int)
+
+    for token, frequency in vocab.collection.items():
+        symbols = token.split()
+
+        for step in range(len(symbols) - 1):
+            current_symbol = symbols[step]  # get current step
+            next_symbol = symbols[step + 1]  # then get next step
+            pair = (current_symbol, next_symbol)
+            token_pairs[pair] += frequency
+
+    return token_pairs
 
 
 def tokenize(text: str) -> List[str]:
@@ -154,7 +176,14 @@ def segment(word: str) -> List[str]:
 
 
 def main():
-    Vocabulary(n_merges=10000)  # adjustable parameter
+    vocab = None
+    with open("taming_shrew.md", "r") as file:
+        vocab = get_vocabulary(
+            corpus=file.readlines(),
+            n_merges=10000,
+            token_constants=TokenConstants(),
+        )
+    print(vocab)
 
 
 if __name__ == "__main__":
