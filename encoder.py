@@ -204,7 +204,11 @@ def find_token_matches(token: str, string: str) -> List[Tuple[int, int]]:
     return [(m.start(0), m.end(0)) for m in re.finditer(token_reg, string)]
 
 
-def tokenize_substring(substring, sorted_tokens, unknown_token="</u>"):
+def tokenize_substring(
+    substring: str,
+    sorted_tokens: List[str],
+    unknown_token: Optional[str] = "</u>",
+) -> List[str]:
     """
     Tokenize a substring using sorted tokens.
 
@@ -236,7 +240,11 @@ def tokenize_substring(substring, sorted_tokens, unknown_token="</u>"):
     return tokens
 
 
-def tokenize_word(string, sorted_tokens, unknown_token="</u>"):
+def tokenize_string(
+    string: str,
+    sorted_tokens: List[str],
+    unknown_token: Optional[str] = "</u>",
+) -> List[str]:
     """
     Tokenize a string based on a list of sorted tokens.
 
