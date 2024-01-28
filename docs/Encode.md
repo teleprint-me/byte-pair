@@ -115,20 +115,26 @@ This analysis provides insight into how Byte-Pair Encoding dynamically construct
 
 ## Understanding the BPE Process
 
-- **Iterative Merging**: BPE starts with characters as basic units and iteratively merges the most frequent adjacent pairs. Over iterations, this builds up more common subword units.
-  
-- **End-of-Word Symbol (`</w>`)**: The `</w>` symbol is crucial as it indicates the end of a word. This helps the algorithm to distinguish when to merge characters across word boundaries.
+### Iterative Merging
+Byte-Pair Encoding (BPE) initiates with characters as its fundamental units and progressively merges the most frequently occurring adjacent pairs. This iterative approach results in the creation of increasingly common subword units.
 
-- **Frequency-Based Merging**: The choice of which pairs to merge is purely based on frequency, which makes BPE effective for compressing the vocabulary and handling rare words or out-of-vocabulary issues.
+### End-of-Word Symbol (`</w>`)
+The presence of the `</w>` symbol is pivotal in BPE as it marks the end of a word. This symbol plays a crucial role in enabling the algorithm to differentiate between merging characters within words and those across word boundaries.
 
-### Potential Improvements
+### Frequency-Based Merging
+BPE's merging decisions are solely driven by frequency. It prioritizes merging pairs based on their occurrence frequency, making it effective in compressing vocabularies and handling rare or out-of-vocabulary words.
 
-- **Dynamic Vocabulary**: Instead of a fixed sample vocabulary, we can consider allowing the script to read a corpus from an input file and build its vocabulary based on that.
-  
-- **Parameterization**: Enable passing parameters like `n_merges` or file paths through command-line arguments to increase flexibility.
+## Potential Improvements
 
-- **Output Format**: We might want to store the series of merges (or the final vocabulary) in a more structured format (like a file) for subsequent use in tokenization.
+### Dynamic Vocabulary
+Consider enhancing flexibility by enabling the script to build its vocabulary dynamically from an input corpus, rather than relying on a fixed sample vocabulary.
+
+### Parameterization
+Introduce command-line parameterization, allowing users to customize parameters like the number of merges (`n_merges`) or input file paths for greater adaptability.
+
+### Structured Output
+To facilitate tokenization and further processing, explore options for storing the series of merges or the final vocabulary in a structured format, such as a file.
 
 ## Conclusion
 
-The implementation introduces a clear demonstration of how BPE operates and its ability to create a hierarchical structure of subword units from a basic character-level representation. Understanding this output is key to grasping how BPE can be used to efficiently handle large vocabularies in various NLP tasks.
+In conclusion, this implementation provides a clear illustration of how Byte-Pair Encoding operates. By constructing a hierarchical structure of subword units from a basic character-level representation, BPE offers an effective approach for handling extensive vocabularies in diverse natural language processing tasks.
