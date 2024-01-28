@@ -56,13 +56,13 @@ def main(args: argparse.Namespace) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Tokenize text using Byte-Pair Encoding."
+        description="Segment text into meaningful sub-units."
     )
     parser.add_argument(
-        "--corpus_file",
+        "--input_file",
         type=str,
         required=True,
-        help="Path to the corpus file for vocabulary creation.",
+        help="Path to the input file for vocabulary segmentation.",
     )
     args = parser.parse_args()
     main(args)
