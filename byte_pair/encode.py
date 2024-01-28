@@ -183,9 +183,11 @@ def main(args):
         # Uncomment the following line to print merge details
         print(f"Merge #{i + 1}: {best}")
 
+    frequencies = calculate_token_frequencies(vocab)
+
     # Save the resulting vocabulary to the output file if specified
     if args.output_file:
-        save_vocab(args.output_file, vocab)
+        save_vocab(args.output_file, frequencies)
 
 
 if __name__ == "__main__":
