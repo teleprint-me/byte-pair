@@ -66,13 +66,31 @@ def save_segmented_text(segments: List[str], output_file: str) -> None:
 
 
 def clean_text(corpus: str) -> str:
-    # Example: Replace multiple spaces with a single space
+    """
+    Clean a given corpus by replacing multiple spaces with a single space and applying other cleaning rules as necessary.
+
+    Args:
+        corpus (str): The input text corpus to be cleaned.
+
+    Returns:
+        str: The cleaned text corpus.
+    """
     corpus = re.sub(r"\s+", " ", corpus)
     # Add other cleaning rules as necessary
     return corpus
 
 
 def segment_text(corpus: str, lower: bool = False) -> List[str]:
+    """
+    Segment a text corpus into a list of tokens using the TOKEN_REGEX pattern.
+
+    Args:
+        corpus (str): The input text corpus to be segmented.
+        lower (bool, optional): If True, convert the text to lowercase before segmentation.
+
+    Returns:
+        List[str]: A list of segmented tokens.
+    """
     if lower:
         corpus = corpus.lower()
     corpus = clean_text(corpus)
@@ -80,7 +98,13 @@ def segment_text(corpus: str, lower: bool = False) -> List[str]:
 
 
 def main(args: argparse.Namespace) -> None:
-    # Using generator to read preprocessed text
+    """
+    Main function for segmenting text corpus using Byte-Pair Encoding (BPE).
+
+    Args:
+        args (argparse.Namespace): Command-line arguments including input_file, output_file, and lowercase.
+    """
+    # Using generator to read preprocessed text line by line
     preprocessed_text = [line for line in read_preprocessed_text(args.input_file)]
 
     # Segmenting the text
