@@ -49,4 +49,14 @@ def main(args: argparse.Namespace) -> None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description="Compress text corpus using Byte-Pair Encoding."
+    )
+    parser.add_argument(
+        "--input_file",
+        type=str,
+        required=False,
+        help="Path to the input file for text based compression.",
+    )
+    args = parser.parse_args()
+    main(args)
