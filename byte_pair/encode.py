@@ -14,7 +14,7 @@ import re
 from collections import defaultdict
 from typing import Dict, List, Tuple
 
-from byte_pair.segment import segment
+from byte_pair.segment import read_preprocessed_text, segment_text
 
 
 def get_stats(vocab: Dict[str, int]) -> Dict[Tuple[str, str], int]:
@@ -61,21 +61,6 @@ def merge_vocab(
         output_vocab[merged_word] = input_vocab[word]
 
     return output_vocab
-
-
-def read_preprocessed_text(input_file: str) -> List[str]:
-    """
-    Read pre-processed text from a plain text file.
-
-    Args:
-        input_file (str): Path to the file containing pre-processed text.
-
-    Returns:
-        List[str]: A list of raw lines of pre-processed text from the input_file.
-    """
-    with open(input_file, "r", encoding="utf-8") as file:
-        lines = file.readlines()
-    return lines
 
 
 def prepare_vocab(segmented_text: List[str]) -> Dict[str, int]:
@@ -137,9 +122,9 @@ def main(args):
     # Read vocabulary from input_file or use default vocabulary
     if args.input_file:
         preprocessed_text = read_preprocessed_text(args.input_file)
-        segmented_text = segment(preprocessed_text)
+        segmented_text = segment_text(preprocessed_text)
     else:
-        segmented_text = segment(
+        segmented_text = segment_text(
             "This is just an *example*.\n"
             "**Natural language processing** is fun!\n"
             "There is a _cool_ breeze today.\n"
