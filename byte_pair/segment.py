@@ -3,10 +3,6 @@ byte_pair/segment.py - Text segmentation for Byte-Pair Encoding
 
 Byte Pair Encoding (BPE) Tokenization for Natural Language Processing
 Copyright (C) 2024 Austin Berrio
-
-Original Paper: https://arxiv.org/abs/1209.1045
-Referenced Paper: https://arxiv.org/abs/1508.07909v5
-Referenced Code: https://github.com/rsennrich/subword-nmt
 """
 import argparse
 import json
