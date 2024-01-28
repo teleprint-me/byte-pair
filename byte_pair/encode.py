@@ -12,7 +12,9 @@ import argparse
 import json
 import re
 from collections import defaultdict
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
+
+from byte_pair.segment import segment
 
 
 def get_stats(vocab: Dict[str, int]) -> Dict[Tuple[str, str], int]:
@@ -61,6 +63,33 @@ def merge_vocab(
     return output_vocab
 
 
+def read_preprocessed_text(input_file: str) -> List[str]:
+    """
+    Read pre-processed text from a plain text file.
+
+    Args:
+        input_file (str): Path to the file containing pre-processed text.
+
+    Returns:
+        List[str]: A list of raw lines of pre-processed text from the input_file.
+    """
+    with open(input_file, "r", encoding="utf-8") as file:
+        lines = file.readlines()
+    return lines
+
+
+def prepare_vocab(segmented_text: List[str]) -> Dict[str, int]:
+    vocab = defaultdict(int)
+    total = 0
+
+    for word in segmented_text:
+        symbols = " ".join(list(word)) + " </w>"
+        vocab[symbols] = 0
+        total += 1
+
+    return vocab
+
+
 def read_vocab(input_file: str) -> Dict[str, int]:
     """
     Read vocabulary from a text file.
@@ -100,14 +129,19 @@ def main(args):
     """
     # Read vocabulary from input_file or use default vocabulary
     if args.input_file:
-        vocab = read_vocab(args.input_file)
+        preprocessed_text = read_preprocessed_text(args.input_file)
+        segmented_text = segment(preprocessed_text)
     else:
-        vocab = {
-            "l o w </w>": 5,
-            "l o w e r </w>": 2,
-            "n e w e s t </w>": 6,
-            "w i d e s t </w>": 3,
-        }
+        segmented_text = segment(
+            "This is just an *example*.\n"
+            "**Natural language processing** is fun!\n"
+            "There is a _cool_ breeze today.\n"
+            "There is a _warm_ breeze today.\n"
+        )
+
+    vocab = prepare_vocab(segmented_text)
+    print(segmented_text)
+    print(vocab)
 
     # Set the number of merges or use the default value
     n_merges = args.n_merges if args.n_merges else 10
@@ -120,7 +154,7 @@ def main(args):
         best = max(pairs, key=pairs.get)
         vocab = merge_vocab(best, vocab)
         # Uncomment the following line to print merge details
-        # print(f"Merge #{i + 1}: {best}")
+        print(f"Merge #{i + 1}: {best}")
 
     # Save the resulting vocabulary to the output file if specified
     if args.output_file:
