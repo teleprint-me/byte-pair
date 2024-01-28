@@ -11,7 +11,7 @@ Referenced Code: https://github.com/rsennrich/subword-nmt
 import argparse
 import json
 import re
-from typing import List
+from typing import Generator, List
 
 TOKEN_REGEX = re.compile(
     r"""
@@ -29,26 +29,40 @@ TOKEN_REGEX = re.compile(
 )
 
 
-def read_preprocessed_text(input_file: str) -> List[str]:
+def read_preprocessed_text(input_file: str) -> Generator[str, None, None]:
     """
-    Read pre-processed text from a plain text file.
+    Read pre-processed text from a plain text file line by line.
 
     Args:
         input_file (str): Path to the file containing pre-processed text.
 
-    Returns:
-        List[str]: A list of raw lines of pre-processed text from the input_file.
+    Yields:
+        Generator[str, None, None]: Yields one line of pre-processed text at a time.
     """
-    with open(input_file, "r", encoding="utf-8") as file:
-        lines = file.readlines()
-    return lines
+    try:
+        with open(input_file, "r", encoding="utf-8") as file:
+            for line in file:
+                yield line.strip()
+    except IOError as e:
+        raise IOError(f"Error reading file {input_file}: {e}")
 
 
-def save_segmented_text(segments: List[str]) -> None:
+def save_segmented_text(segments: List[str], output_file: str) -> None:
     """
     Write segmented text to a JSON file.
+
+    Args:
+        segments (List[str]): Segmented text.
+        output_file (str): Path to the output JSON file.
+
+    Raises:
+        IOError: If there's an error writing to the file.
     """
-    ...
+    try:
+        with open(output_file, "w", encoding="utf-8") as file:
+            json.dump(segments, file, ensure_ascii=False, indent=4)
+    except IOError as e:
+        raise IOError(f"Error writing to file {output_file}: {e}")
 
 
 def clean_text(corpus: str) -> str:
@@ -66,11 +80,18 @@ def segment_text(corpus: str, lower: bool = False) -> List[str]:
 
 
 def main(args: argparse.Namespace) -> None:
-    preprocessed_text = read_preprocessed_text(args.input_file)
-    segmented_text = segment_text(preprocessed_text, args.lower)
+    # Using generator to read preprocessed text
+    preprocessed_text = [line for line in read_preprocessed_text(args.input_file)]
 
-    for seg in segmented_text:
-        print(seg)
+    # Segmenting the text
+    segmented_text = segment_text(" ".join(preprocessed_text), args.lowercase)
+
+    # Option to output to a file or stdout
+    if args.output_file:
+        save_segmented_text(segmented_text, args.output_file)
+    else:
+        for seg in segmented_text:
+            print(seg)
 
 
 if __name__ == "__main__":
@@ -84,10 +105,14 @@ if __name__ == "__main__":
         help="Path to the input file for vocabulary segmentation.",
     )
     parser.add_argument(
-        "--input_file",
+        "--output_file",
         type=str,
-        required=True,
         help="Path to the output file for the segmented vocabulary.",
+    )
+    parser.add_argument(
+        "--lowercase",
+        action="store_true",
+        help="Convert text to lowercase before segmentation.",
     )
     args = parser.parse_args()
     main(args)
