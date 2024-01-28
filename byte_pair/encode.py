@@ -121,8 +121,8 @@ def main(args):
     """
     # Read vocabulary from input_file or use default vocabulary
     if args.input_file:
-        preprocessed_text = read_preprocessed_text(args.input_file)
-        segmented_text = segment_text(preprocessed_text)
+        preprocessed_text = [line for line in read_preprocessed_text(args.input_file)]
+        segmented_text = segment_text(" ".join(preprocessed_text))
     else:
         segmented_text = segment_text(
             "This is just an *example*.\n"
