@@ -17,6 +17,41 @@ from typing import Dict, List, Tuple
 from byte_pair.segment import read_preprocessed_text, segment_text
 
 
+def map_tokens_to_words(vocab: Dict[str, int]) -> Dict[str, str]:
+    """
+    Map each token in the vocabulary to its original word.
+
+    Args:
+        vocab (Dict[str, int]): The vocabulary object.
+
+    Returns:
+        Dict[str, str]: A dictionary mapping each token to its original word.
+    """
+    token_to_word_map = {}
+    for word in vocab:
+        split_word = word.split()
+        original_word = "".join(split_word)
+        token_to_word_map[original_word] = split_word
+    return token_to_word_map
+
+
+def calculate_token_frequencies(vocab: Dict[str, int]) -> Dict[str, int]:
+    """
+    Calculate token frequencies based on the vocabulary.
+
+    Args:
+        vocab (Dict[str, int]): The vocabulary object containing token frequency information.
+
+    Returns:
+        Dict[str, int]: A dictionary mapping each token to its frequency.
+    """
+    token_frequencies = defaultdict(int)
+    for word, frequency in vocab.items():
+        for token in word.split():
+            token_frequencies[token] += frequency
+    return token_frequencies
+
+
 def get_stats(vocab: Dict[str, int]) -> Dict[Tuple[str, str], int]:
     """
     Calculate frequencies of pairs of adjacent symbols in the vocabulary.
