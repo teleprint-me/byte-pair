@@ -1,8 +1,8 @@
-# Byte-Pair Encoding
+# Byte-Pair Encoding (BPE) Implementation Analysis
 
 ## Introduction
 
-The `encode.py` script is a practical implementation of the Byte Pair Encoding (BPE) algorithm, directly inspired by the process outlined in the "Neural Machine Translation of Rare Words with Subword Units" paper. 
+This document delves into the `encode.py` script, which offers a practical implementation of the Byte Pair Encoding (BPE) algorithm. The script directly implements the BPE algorithm as outlined in the "Neural Machine Translation of Rare Words with Subword Units" paper.
 
 ## Analysis
 
