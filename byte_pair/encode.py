@@ -79,14 +79,21 @@ def read_preprocessed_text(input_file: str) -> List[str]:
 
 
 def prepare_vocab(segmented_text: List[str]) -> Dict[str, int]:
+    """
+    Prepare the initial vocabulary from segmented text with accurate frequencies.
+
+    Args:
+        segmented_text (List[str]): List of words from the segmented text.
+
+    Returns:
+        Dict[str, int]: Dictionary with tokens as keys and frequencies as values.
+    """
     vocab = defaultdict(int)
-    total = 0
-
     for word in segmented_text:
-        symbols = " ".join(list(word)) + " </w>"
-        vocab[symbols] = 0
-        total += 1
-
+        # Forming the token with spaces between characters and an end-of-word symbol
+        token = " ".join(word) + " </w>"
+        # Increment the frequency count for each occurrence
+        vocab[token] += 1
     return vocab
 
 
