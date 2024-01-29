@@ -8,6 +8,7 @@ Paper: https://arxiv.org/abs/1508.07909v5
 """
 import argparse
 import collections
+import json
 import re
 from typing import Dict, Tuple
 
@@ -57,13 +58,36 @@ def merge_vocab(
     return output_vocab
 
 
+def load_vocab_from_json(json_file: str) -> Dict[str, int]:
+    """
+    Load a vocabulary from a JSON file.
+
+    Args:
+        json_file (str): Path to the JSON file containing the vocabulary.
+
+    Returns:
+        dict: Vocabulary loaded from the JSON file.
+    """
+    try:
+        with open(json_file, "r") as file:
+            vocab = json.load(file)
+    except json.JSONDecodeError as e:
+        raise json.JSONDecodeError(f"Error loading JSON vocabulary: {e}")
+
+    return vocab
+
+
 def main(args: argparse.Namespace) -> None:
-    vocab = {
-        "l o w </w>": 5,
-        "l o w e r </w>": 2,
-        "n e w e s t </w>": 6,
-        "w i d e s t </w>": 3,
-    }
+    if args.vocab_json:
+        vocab = load_vocab_from_json(args.vocab_json)
+    else:
+        # Default vocabulary
+        vocab = {
+            "l o w </w>": 5,
+            "l o w e r </w>": 2,
+            "n e w e s t </w>": 6,
+            "w i d e s t </w>": 3,
+        }
 
     for i in range(args.num_merges):
         pairs = get_stats(vocab)
@@ -79,7 +103,13 @@ if __name__ == "__main__":
         "--num_merges",
         type=int,
         default=10,
-        help="Number of BPE merges (default is 3)",
+        help="Number of BPE merges (default is 10)",
+    )
+
+    parser.add_argument(
+        "--vocab_json",
+        type=str,
+        help="Path to a JSON file containing the initial vocabulary (optional)",
     )
 
     args = parser.parse_args()
