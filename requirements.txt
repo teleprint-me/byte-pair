@@ -1,1 +1,19 @@
-tqdm==4.66.1
+# Packages for extracting and preparing text for Byte-Pair Encoding and generating tokenizer models
+
+# Development tools
+bpython  # Interactive Python interpreter with advanced features
+tqdm  # Library for displaying progress bars to measure progress over time
+numpy  # Fundamental package for scientific computing with Python, used to implement custom models
+sentencepiece  # Fundemental package for training reliable tokenizer models
+
+# File identification and extraction
+python-magic  # Library for identifying file types by file headers
+python-poppler  # Python bindings for the Poppler PDF rendering library, used to extract text from PDFs
+
+# Text extraction from images
+opencv-python  # OpenCV (Open Source Computer Vision Library) for image processing and computer vision tasks
+pytesseract  # Python wrapper for Google's Tesseract OCR engine, used to extract text from images
+
+# Text extraction from markdown and HTML
+beautifulsoup4  # Library for parsing HTML and XML documents
+html2text  # Library to convert HTML documents to plain text
