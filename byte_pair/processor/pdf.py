@@ -1,5 +1,7 @@
 """
 byte_pair/processor/pdf.py
+
+Copyright (C) 2024 Austin Berrio
 """
 
 from pathlib import Path
