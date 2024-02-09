@@ -7,93 +7,112 @@ Byte Pair Encoding (BPE) Tokenization for Natural Language Processing
 Copyright (C) 2024 Austin Berrio
 """
 
-import click
-from pygptprompt.processor.image import ImageProcessor
+import argparse
+
+from byte_pair.processor.ocr import ImageProcessor
 
 
-@click.command()
-@click.option(
-    "--path_image",
-    prompt="File path to input image",
-    help="The file path to the input image.",
-)
-@click.option(
-    "--path_text",
-    default="",
-    help="The file path to save the extracted text. Default is an empty string (print to console).",
-)
-@click.option(
-    "--rotate",
-    default=0,
-    help="Rotate the image by the specified angle in degrees. Default is 0.",
-)
-@click.option(
-    "--scale",
-    default=0,
-    help="Scale the image by the specified factor. Default is 0.",
-)
-@click.option("--grayscale", is_flag=True, help="Convert the image to grayscale.")
-@click.option("--contrast", is_flag=True, help="Enhance the image contrast.")
-@click.option(
-    "--burn",
-    is_flag=True,
-    help="Burn the image by adjusting brightness and contrast.",
-)
-@click.option(
-    "--preprocess",
-    is_flag=True,
-    help="Preprocess the image for text extraction using adaptive thresholding and erosion-dilation.",
-)
-@click.option(
-    "--contours",
-    is_flag=True,
-    help="Extract text from image using contours and bounding rectangular areas.",
-)
-def main(
-    path_image,
-    path_text,
-    rotate,
-    scale,
-    grayscale,
-    contrast,
-    burn,
-    preprocess,
-    contours,
-):
+def get_arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Perform image processing operations and extract text from images."
+    )
+    parser.add_argument(
+        "-i",
+        "--image_path",
+        required=True,
+        type=str,
+        help="The file path to the input image.",
+    )
+    parser.add_argument(
+        "-o",
+        "--text_path",
+        type=str,
+        default="",
+        help="The file path to save the extracted text. Default is an empty string (print to console).",
+    )
+    parser.add_argument(
+        "-r",
+        "--rotate",
+        type=int,
+        default=0,
+        help="Rotate the image by the specified angle in degrees. Default is 0.",
+    )
+    parser.add_argument(
+        "-s",
+        "--scale",
+        type=int,
+        default=0,
+        help="Scale the image by the specified factor. Default is 0.",
+    )
+    parser.add_argument(
+        "-g",
+        "--grayscale",
+        action="store_true",
+        help="Convert the image to grayscale.",
+    )
+    parser.add_argument(
+        "-a",
+        "--contrast",
+        action="store_true",
+        help="Enhance the image contrast.",
+    )
+    parser.add_argument(
+        "-b",
+        "--burn",
+        action="store_true",
+        help="Burn the image by adjusting brightness and contrast.",
+    )
+    parser.add_argument(
+        "-p",
+        "--preprocess",
+        action="store_true",
+        help="Preprocess the image for text extraction using adaptive thresholding and erosion-dilation.",
+    )
+    parser.add_argument(
+        "-u",
+        "--contours",
+        action="store_true",
+        help="Extract text from image using contours and bounding rectangular areas.",
+    )
+    return parser.parse_args()
+
+
+def main(args: argparse.Namespace):
     """
     Perform image processing operations and extract text from images.
     """
-    processor = ImageProcessor(path_image)
+    processor = ImageProcessor(args.image_path)
 
-    if rotate:
-        processor.rotate_image(rotate)
+    if args.rotate:
+        processor.rotate_image(args.rotate)
 
-    if scale:
-        processor.scale_image(scale)
+    if args.scale:
+        processor.scale_image(args.scale)
 
-    if grayscale:
+    if args.grayscale:
         processor.grayscale_image()
 
-    if contrast:
+    if args.contrast:
         processor.contrast_image()
 
-    if burn:
+    if args.burn:
         processor.burn_image()
 
-    if preprocess:
+    if args.preprocess:
         processor.preprocess_image()
 
-    if contours:
+    if args.contours:
         text = processor.extract_text_from_image_contours()
     else:
         text = processor.extract_text_from_image()
 
-    if path_text:
-        with open(path_text, "w") as plaintext:
+    if args.text_path:
+        with open(args.text_path, "w") as plaintext:
             plaintext.writelines(text.splitlines())
     else:
         print(text)
 
 
 if __name__ == "__main__":
-    main()
+    args = get_arguments()
+    main(args)
