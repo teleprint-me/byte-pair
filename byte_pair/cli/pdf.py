@@ -1,5 +1,7 @@
 """
 byte_pair/cli/pdf.py
+
+Copyright (C) 2024 Austin Berrio
 """
 
 import argparse

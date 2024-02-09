@@ -1,9 +1,10 @@
 """
-byte_pair/segment.py - Text segmentation for Byte-Pair Encoding
+byte_pair/cli/segment.py - Text segmentation for Byte-Pair Encoding
 
 Byte Pair Encoding (BPE) Tokenization for Natural Language Processing
 Copyright (C) 2024 Austin Berrio
 """
+
 import argparse
 import json
 import re

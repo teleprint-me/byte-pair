@@ -1,5 +1,5 @@
 """
-byte_pair/markdown.py - A Python script for converting HTML files to Markdown format.
+byte_pair/cli/html.py - A Python script for converting HTML files to Markdown format.
 
 This script recursively processes files in the input directory, converting HTML documents to Markdown format. It employs BeautifulSoup and html2text libraries to clean HTML content and perform the conversion. The script also provides detailed logging for error handling during file operations.
 

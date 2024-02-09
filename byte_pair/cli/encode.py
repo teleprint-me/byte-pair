@@ -1,11 +1,11 @@
 """
-encode.py - Byte Pair Encoding for building tokenization models
-
-Byte Pair Encoding (BPE) Tokenization for Natural Language Processing
-Copyright (C) 2024 Austin Berrio
+byte_pair/cli/encode.py - Byte Pair Encoding for building tokenization models
 
 Paper: https://arxiv.org/abs/1508.07909v5
 Blog: https://leimao.github.io/blog/Byte-Pair-Encoding/
+
+Byte Pair Encoding (BPE) Tokenization for Natural Language Processing
+Copyright (C) 2024 Austin Berrio
 """
 
 import argparse
