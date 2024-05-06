@@ -17,3 +17,4 @@ pytesseract  # Python wrapper for Google's Tesseract OCR engine, used to extract
 # Text extraction from markdown and HTML
 beautifulsoup4  # Library for parsing HTML and XML documents
 html2text  # Library to convert HTML documents to plain text
+mdformat
