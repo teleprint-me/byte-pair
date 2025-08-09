@@ -2,4 +2,7 @@ bpython
 isort
 black
 tqdm
+requests
+grapheme
+regex
 numpy
