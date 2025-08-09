@@ -1,10 +1,19 @@
 {
+  "window.zoomLevel": 0,
+  "extensions.ignoreRecommendations": false,
   "editor.defaultFormatter": null,
   "editor.stickyTabStops": true,
   "editor.tabCompletion": "on",
   "editor.wordWrap": "on",
   "editor.fontSize": 10,
+  "editor.detectIndentation": false,
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  "editor.lightbulb.enabled": "off",
+  "editor.wordWrapColumn": 80,
   "editor.fontFamily": "'Noto Sans Mono', 'Source Code Pro', 'Droid Sans Mono'",
+  "editor.inlineSuggest.enabled": true,
+  "terminal.integrated.fontSize": 10,
   "[markdown]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
@@ -16,30 +25,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true
   },
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
-  },
-  "notebook.formatOnSave.enabled": true,
-  "notebook.codeActionsOnSave": {
-    "source.organizeImports": "explicit"
-  },
-  "python.autoComplete.extraPaths": [
-    "${workspaceFolder}/.venv/bin",
-    "${workspaceFolder}/.venv/lib/python3.11/site-packages",
-    "${workspaceFolder}/agent"
-  ],
-  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
-  "python.languageServer": "Pylance",
-  "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter",
-    "editor.formatOnSave": true,
-    "editor.formatOnPaste": false,
-    "editor.codeActionsOnSave": {
-      "source.organizeImports": "explicit"
-    }
-  },
-  "isort.args": ["--profile", "black"],
+  "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
   "clang-format.executable": "/usr/bin/clang-format",
   "editor.codeActionsOnSave": {
     "source.organizeImports": "explicit"
@@ -61,5 +47,10 @@
     "editor.tabSize": 4,
     "editor.formatOnSave": false,
     "editor.insertSpaces": true
+  },
+  "files.associations": {
+    "*.c": "c",
+    "*.cc": "c",
+    "*.h": "c"
   }
 }

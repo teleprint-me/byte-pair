@@ -7,7 +7,7 @@
         "/usr/local/include",
         "${workspaceFolder}/include"
       ],
-      "defines": ["_POSIX_C_SOURCE=200112L"],
+      "defines": ["__STDC_VERSION__=201112L", "_POSIX_C_SOURCE=200112L"],
       "cStandard": "c17",
       "intelliSenseMode": "linux-gcc-x64",
       "compilerPath": "/usr/bin/gcc"
