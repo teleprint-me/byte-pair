@@ -5,36 +5,38 @@
 import argparse
 import collections
 import json
-import re
+import regex as re
 
 
 def get_freqs(words: list[str]):
-    # pair frequencies
     freqs = {}
     for word in words:
         if word in freqs:
             freqs[word] += 1
         else:
             freqs[word] = 1
-
-    # pretty-print without losing structure
-    print(json.dumps(freqs, indent=2, ensure_ascii=False))
-
     return freqs
 
 
-def get_vocab(path: str | None = None, stop: str = None) -> dict[str, int]:
-    # Load raw words
+def get_words(path: str = None) -> list[str]:
+    # It's very annoying that there's no escaping this.
+    # The primary issue with regex is that delims are omitted from the final results.
+    # I've tried using other tools, but the inverse is true as well. e.g. re.split()
+    # A key realization I had was that for most langs,
+    # we only need to split at spaces and punctuation.
+    # The caveat is that we must capture spaces and punctuation as well.
+    # The best way to probably achieve this is to do it manually.
+    # https://github.com/openai/gpt-2/blob/master/src/encoder.py#L53C35-L53C109
+    PRE = r"'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"
     if path:
-        with open(path, "r", encoding="utf-8") as f:
-            words = re.findall(r"\S+", f.read())
-    else:
-        words = "lo low lower newest wide wider widest".split()
+        with open(path, "r", encoding="utf-8") as file:
+            return re.findall(PRE, file.read())
+    return re.findall(PRE, "lo low lower newest wide wider widest")
 
-    # Count frequencies
+
+def get_vocab(path: str = None, stop: str = None) -> dict[str, int]:
+    words = get_words(path)
     freqs = get_freqs(words)
-
-    # Build BPE-initial vocab: "c h a r s </w>" per word
     vocab: dict[str, int] = {}
     for w, c in freqs.items():
         if stop:
@@ -54,17 +56,16 @@ def get_pairs(vocab: dict[str, int]) -> dict[tuple[str, str], int]:
     return pairs
 
 
-def get_best_pair(pairs: dict[tuple[str, str], int]) -> tuple[tuple[str, str], int]:
-    # get the best pair
-    best_pair = None  # ("l", "o")
-    best_freq = -1  # frequency
+def get_best_pair(
+    pairs: dict[tuple[str, str], int]
+) -> tuple[tuple[str, str], int] | tuple[None, int]:
+    best_pair = None
+    best_freq = -1
     for pair, freq in pairs.items():
-        # break ties (mitigates collisions and overlapping boundaries)
-        if (freq > best_freq) or (
-            freq == best_freq and (best_pair is None or pair < best_pair)
-        ):
-            best_pair = pair
-            best_freq = freq
+        if freq > best_freq:
+            best_pair, best_freq = pair, freq
+        elif freq == best_freq and best_pair is not None and pair < best_pair:
+            best_pair = pair  # lexicographic tie-break
     return best_pair, best_freq
 
 
@@ -73,7 +74,7 @@ def get_merges(vocab: dict[str, int], pair: tuple[str, str]) -> dict[str, int]:
     new_vocab: dict[str, int] = {}
 
     for word, freq in vocab.items():
-        syms = word.split()
+        syms = word.split()  # spaces need to be escaped
         out = []
         i = 0
         while i < len(syms):
@@ -97,24 +98,8 @@ def train(vocab: dict[str, int], num_merges: int) -> dict[str, int]:
             break
         best = get_best_pair(pairs)[0]
         vocab = get_merges(vocab, best)
-        print(best)
+        print(f"best[{i}]: {best}")
     return vocab
-
-
-def trace(words: list[str], merges: list[tuple[str, str]], eos: str | None):
-    # Precompile all merge regexes once, in order
-    pats = [
-        re.compile(rf"(?<!\S){re.escape(a)} {re.escape(b)}(?!\S)") for (a, b) in merges
-    ]
-
-    def apply_word(w: str) -> str:
-        s = " ".join(list(w)) + (f" {eos}" if eos else "")
-        for p, (a, b) in zip(pats, merges):
-            s = p.sub(a + b, s)
-        return s
-
-    for w in words:
-        print(f"{w:>12} -> {apply_word(w)}")
 
 
 parser = argparse.ArgumentParser()
@@ -123,11 +108,11 @@ parser.add_argument("-c", "--corpus", default=None, type=str)
 parser.add_argument("-e", "--eos", default=None, type=str)
 args = parser.parse_args()
 
-vocab = get_vocab(args.file_path, args.eos)
+vocab = get_vocab(args.corpus, args.eos)
 print("Initial Vocab:")
 print(json.dumps(vocab, indent=2))
 
-vocab = train(vocab, args.num_merges)
+vocab = train(vocab, args.merges)
 
 print("Final Vocab")
 print(json.dumps(vocab, indent=2))
