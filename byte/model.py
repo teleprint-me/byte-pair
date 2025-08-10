@@ -118,8 +118,8 @@ def trace(words: list[str], merges: list[tuple[str, str]], eos: str | None):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-m", "--num-merges", default=10, type=int)
-parser.add_argument("-f", "--file-path", default=None, type=str)
+parser.add_argument("-m", "--merges", default=10, type=int)
+parser.add_argument("-c", "--corpus", default=None, type=str)
 parser.add_argument("-e", "--eos", default=None, type=str)
 args = parser.parse_args()
 
