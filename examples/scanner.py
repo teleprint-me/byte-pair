@@ -47,9 +47,24 @@ def get_words(path: str = None) -> list[str]:
     return list(scan("lo low lower newest wide wider widest"))
 
 
+def get_word_frequencies(words: list[str]):
+    frequencies = {}
+    for word in words:
+        if word in frequencies:
+            frequencies[word] += 1
+        else:
+            frequencies[word] = 1
+    return frequencies
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--text", default=None, type=str)
 args = parser.parse_args()
 
-words = list(set(get_words(args.text)))
+words = get_words(args.text)
+print("Words:")
 print(json.dumps(words, indent=2, ensure_ascii=False))
+
+freqs = get_word_frequencies(words)
+print("Frequencies:")
+print(json.dumps(freqs, indent=2, ensure_ascii=False))
