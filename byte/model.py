@@ -54,14 +54,67 @@ def get_pairs(vocab: dict[str, int]) -> dict[tuple[str, str], int]:
     return pairs
 
 
+def get_best_pair(pairs: dict[tuple[str, str], int]) -> tuple[tuple[str, str], int]:
+    # get the best pair
+    best_pair = None  # ("l", "o")
+    best_freq = -1  # frequency
+    for pair, freq in pairs.items():
+        # break ties (mitigates collisions and overlapping boundaries)
+        if (freq > best_freq) or (
+            freq == best_freq and (best_pair is None or pair < best_pair)
+        ):
+            best_pair = pair
+            best_freq = freq
+    return best_pair, best_freq
+
+
 def get_merges(vocab: dict[str, int], pair: tuple[str, str]) -> dict[str, int]:
-    bigram = re.escape(" ".join(pair))
-    p = re.compile(r"(?<!\S)" + bigram + r"(?!\S)")
+    a, b = pair
     new_vocab: dict[str, int] = {}
+
     for word, freq in vocab.items():
-        new_word = p.sub("".join(pair), word)
-        new_vocab[new_word] = freq
+        syms = word.split()
+        out = []
+        i = 0
+        while i < len(syms):
+            if i + 1 < len(syms) and syms[i] == a and syms[i + 1] == b:
+                out.append(a + b)  # merge the pair
+                i += 2  # skip the next symbol (non-overlapping)
+            else:
+                out.append(syms[i])
+                i += 1
+        new_word = " ".join(out)
+        new_vocab[new_word] = new_vocab.get(new_word, 0) + freq  # sum collisions
+
     return new_vocab
+
+
+def train(vocab: dict[str, int], num_merges: int) -> dict[str, int]:
+    for i in range(num_merges):
+        pairs = get_pairs(vocab)
+        if not pairs:
+            print(f"Exhausted all pairs at step {i}.")
+            break
+        best = get_best_pair(pairs)[0]
+        vocab = get_merges(vocab, best)
+        print(best)
+    return vocab
+
+
+def trace(words: list[str], merges: list[tuple[str, str]], eos: str | None):
+    # Precompile all merge regexes once, in order
+    pats = [
+        re.compile(rf"(?<!\S){re.escape(a)} {re.escape(b)}(?!\S)") for (a, b) in merges
+    ]
+
+    def apply_word(w: str) -> str:
+        s = " ".join(list(w)) + (f" {eos}" if eos else "")
+        for p, (a, b) in zip(pats, merges):
+            s = p.sub(a + b, s)
+        return s
+
+    for w in words:
+        print(f"{w:>12} -> {apply_word(w)}")
 
 
 parser = argparse.ArgumentParser()
@@ -74,14 +127,7 @@ vocab = get_vocab(args.file_path, args.eos)
 print("Initial Vocab:")
 print(json.dumps(vocab, indent=2))
 
-for i in range(args.num_merges):
-    pairs = get_pairs(vocab)
-    if not pairs:
-        print(f"Exhausted all pairs at step {i}.")
-        break
-    best = max(pairs, key=pairs.get)
-    vocab = get_merges(vocab, best)
-    print(best)
+vocab = train(vocab, args.num_merges)
 
 print("Final Vocab")
 print(json.dumps(vocab, indent=2))
