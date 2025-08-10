@@ -74,6 +74,40 @@ def get_pairs(vocab: dict[str, int]) -> dict[tuple[str, str], int]:
     return pairs
 
 
+def get_best(
+    pairs: dict[tuple[str, str], int]
+) -> tuple[tuple[str, str], int] | tuple[None, int]:
+    best_pair = None
+    best_freq = -1
+    for pair, freq in pairs.items():
+        if freq > best_freq:
+            best_pair, best_freq = pair, freq
+        elif freq == best_freq and best_pair is not None and pair < best_pair:
+            best_pair = pair  # lexicographic tie-break
+    return best_pair, best_freq
+
+
+def get_merges(vocab: dict[str, int], pair: tuple[str, str]) -> dict[str, int]:
+    a, b = pair
+    new_vocab: dict[str, int] = {}
+
+    for word, freq in vocab.items():
+        syms = list(word)  # no need for spacing
+        out = []
+        i = 0
+        while i < len(syms):
+            if i + 1 < len(syms) and syms[i] == a and syms[i + 1] == b:
+                out.append(a + b)  # merge the pair
+                i += 2  # skip the next symbol (non-overlapping)
+            else:
+                out.append(syms[i])
+                i += 1
+        new_word = " ".join(out)
+        new_vocab[new_word] = new_vocab.get(new_word, 0) + freq  # sum collisions
+
+    return new_vocab
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--text", default=None, type=str)
 args = parser.parse_args()
@@ -94,3 +128,10 @@ pairs = get_pairs(vocab)
 print("Pairs:")
 for pair, freq in pairs.items():
     print(pair, freq)
+
+best = get_best(pairs)[0]
+print(f"best: {best}")
+
+vocab = get_merges(vocab, best)
+print("Merges:")
+print(json.dumps(vocab, indent=2, ensure_ascii=False))
