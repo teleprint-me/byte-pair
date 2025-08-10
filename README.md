@@ -73,3 +73,4 @@ implementation.
 - [Egalitarian Language Representation in Language Models](https://arxiv.org/abs/2409.11501)
 - [A Formal Perspective on Byte-Pair Encoding](https://arxiv.org/abs/2306.16837)
 - [A Statistical Extension of Byte-Pair Encoding](https://paperswithcode.com/paper/a-statistical-extension-of-byte-pair-encoding)
+- [wHy DoNt YoU jUsT uSe ThE lLaMa ToKeNiZeR??](https://huggingface.co/blog/catherinearnett/dangers-of-tokenizer-recycling)
