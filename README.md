@@ -68,13 +68,18 @@ For detailed information, see the [LICENSE](LICENSE) file.
 Special thanks to Lei Mao for the blog tutorial that inspired this
 implementation.
 
-## Additional Resources
+## References
 
+- [On Computable Numbers, with an application to the Entscheidungsproblem](https://archive.org/details/Turing1936OnCumputableNumbers)
+- [Prediction and Entropy of Printed English](https://archive.org/details/bstj30-1-50)
 - [A New Algorithm for Data Compression Optimization](https://arxiv.org/abs/1209.1045)
 - [Neural Machine Translation of Rare Words with Subword Units](https://arxiv.org/abs/1508.07909)
 - [Byte Pair Encoding](https://leimao.github.io/blog/Byte-Pair-Encoding/)
 - [Egalitarian Language Representation in Language Models](https://arxiv.org/abs/2409.11501)
 - [A Formal Perspective on Byte-Pair Encoding](https://arxiv.org/abs/2306.16837)
 - [A Statistical Extension of Byte-Pair Encoding](https://paperswithcode.com/paper/a-statistical-extension-of-byte-pair-encoding)
+- [Byte Pair Encoding is Suboptimal for Language Model Pretraining](https://arxiv.org/abs/2004.03720v2)
+- [Language Model Tokenizers Introduce Unfairness Between Languages](https://arxiv.org/abs/2305.15425)
+- [Rethinking Tokenization](https://arxiv.org/abs/2403.00417)
 - [wHy DoNt YoU jUsT uSe ThE lLaMa ToKeNiZeR??](https://huggingface.co/blog/catherinearnett/dangers-of-tokenizer-recycling)
 - [Dynamic Chunking for End-to-End Hierarchical Sequence Modeling](https://arxiv.org/abs/2507.07955v2)
