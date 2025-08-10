@@ -228,7 +228,7 @@ def parse_args() -> argparse.Namespace:
         required=False,
         type=bool,
         default=False,
-        help="enable debug mode"
+        help="enable debug mode",
     )
     return parser.parse_args()
 
