@@ -1,6 +1,7 @@
 """
 Copyright © 2025 Austin Berrio
 @file boundless.py
+@ref https://arxiv.org/pdf/2403.00417
 """
 
 import json

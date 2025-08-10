@@ -1,6 +1,7 @@
 """
-bpe.py
 Algorithm 1 Learn BPE operations
+@file bpe.py
+@ref https://arxiv.org/abs/1508.07909
 """
 
 import argparse

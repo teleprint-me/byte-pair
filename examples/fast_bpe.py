@@ -1,10 +1,7 @@
 """
-examples/fast_bpe.py - A Formal Perspective on Byte-Pair Encoding
-
-Byte Pair Encoding (BPE) Tokenization for Natural Language Processing
 Copyright (C) 2024 Austin Berrio
-
-Paper: https://aclanthology.org/2023.findings-acl.38.pdf
+@file fast_bpe.py - A Formal Perspective on Byte-Pair Encoding
+Paper: https://arxiv.org/abs/2306.16837
 """
 import argparse
 from collections import Counter
