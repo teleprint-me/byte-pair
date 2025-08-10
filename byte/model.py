@@ -23,7 +23,7 @@ def get_freqs(words: list[str]):
     return freqs
 
 
-def get_vocab(path: str | None = None, stop: str = "</w>") -> dict[str, int]:
+def get_vocab(path: str | None = None, stop: str = None) -> dict[str, int]:
     # Load raw words
     if path:
         with open(path, "r", encoding="utf-8") as f:
@@ -37,7 +37,10 @@ def get_vocab(path: str | None = None, stop: str = "</w>") -> dict[str, int]:
     # Build BPE-initial vocab: "c h a r s </w>" per word
     vocab: dict[str, int] = {}
     for w, c in freqs.items():
-        symbols = " ".join(list(w)) + f" {stop}"
+        if stop:
+            symbols = " ".join(list(w)) + f" {stop}"
+        else:
+            symbols = " ".join(list(w))
         vocab[symbols] = c
     return vocab
 
@@ -64,12 +67,12 @@ def get_merges(vocab: dict[str, int], pair: tuple[str, str]) -> dict[str, int]:
 parser = argparse.ArgumentParser()
 parser.add_argument("-m", "--num-merges", default=10, type=int)
 parser.add_argument("-f", "--file-path", default=None, type=str)
-parser.add_argument("-e", "--eos", default="</w>", type=str)
+parser.add_argument("-e", "--eos", default=None, type=str)
 args = parser.parse_args()
 
 vocab = get_vocab(args.file_path, args.eos)
 print("Initial Vocab:")
-print(vocab)
+print(json.dumps(vocab, indent=2))
 
 for i in range(args.num_merges):
     pairs = get_pairs(vocab)
