@@ -77,3 +77,4 @@ implementation.
 - [A Formal Perspective on Byte-Pair Encoding](https://arxiv.org/abs/2306.16837)
 - [A Statistical Extension of Byte-Pair Encoding](https://paperswithcode.com/paper/a-statistical-extension-of-byte-pair-encoding)
 - [wHy DoNt YoU jUsT uSe ThE lLaMa ToKeNiZeR??](https://huggingface.co/blog/catherinearnett/dangers-of-tokenizer-recycling)
+- [Dynamic Chunking for End-to-End Hierarchical Sequence Modeling](https://arxiv.org/abs/2507.07955v2)
