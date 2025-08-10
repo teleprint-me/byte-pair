@@ -21,29 +21,31 @@ To get started with Byte-Pair Encoder, follow these simple steps:
 
 1. **Clone the Repository**
 
-   ```sh
-   git clone https://github.com/teleprint-me/byte-pair.git
-   ```
+```sh
+git clone https://github.com/teleprint-me/byte-pair.git
+cd byte-pair
+```
 
 2. **Install Dependencies**
 
-   ```sh
-   python -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements.txt
-   ```
+```sh
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
 3. **Run the Code**
-   ```sh
-   python -m byte.model --input-file samples/shrew.md --output-file local/tokenizer.json --num-merges 2500
-   ```
+
+```sh
+python -m byte.model -c samples/simple.md -m 10
+```
 
 ## Usage
 
 For comprehensive usage instructions and options, consult the documentation:
 
 ```sh
-python -m byte.model --help
+python -m byte.model -h
 ```
 
 ## Documentation
