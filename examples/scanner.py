@@ -48,22 +48,30 @@ def get_words(path: str = None) -> list[str]:
 
 
 def get_freqs(words: list[str]) -> dict[str, int]:
-    frequencies = {}
+    freqs = {}
     for word in words:
-        if word in frequencies:
-            frequencies[word] += 1
+        if word in freqs:
+            freqs[word] += 1
         else:
-            frequencies[word] = 1
-    return frequencies
+            freqs[word] = 1
+    return freqs
 
 
 def get_vocab(freqs: dict[str, int]) -> dict[str, int]:
     vocab = {}
     for word, freq in freqs.items():
-        symbols = list(word)  # preserve spaces
-        key = " ".join(symbols)
-        vocab[key] = vocab.get(key, 0) + freq
+        vocab[word] = vocab.get(word, 0) + freq
     return vocab
+
+
+def get_pairs(vocab: dict[str, int]) -> dict[tuple[str, str], int]:
+    pairs = {}
+    for word, freq in vocab.items():
+        symbols = list(word)
+        for i in range(len(symbols) - 1):
+            a, b = symbols[i], symbols[i + 1]
+            pairs[(a, b)] = pairs.get((a, b), 0) + freq
+    return pairs
 
 
 parser = argparse.ArgumentParser()
@@ -81,3 +89,8 @@ print(json.dumps(freqs, indent=2, ensure_ascii=False))
 vocab = get_vocab(freqs)
 print("Vocab:")
 print(json.dumps(vocab, indent=2, ensure_ascii=False))
+
+pairs = get_pairs(vocab)
+print("Pairs:")
+for pair, freq in pairs.items():
+    print(pair, freq)
