@@ -47,7 +47,7 @@ def get_words(path: str = None) -> list[str]:
     return list(scan("lo low lower newest wide wider widest"))
 
 
-def get_word_frequencies(words: list[str]):
+def get_freqs(words: list[str]) -> dict[str, int]:
     frequencies = {}
     for word in words:
         if word in frequencies:
@@ -55,6 +55,15 @@ def get_word_frequencies(words: list[str]):
         else:
             frequencies[word] = 1
     return frequencies
+
+
+def get_vocab(freqs: dict[str, int]) -> dict[str, int]:
+    vocab = {}
+    for word, freq in freqs.items():
+        symbols = list(word)  # preserve spaces
+        key = " ".join(symbols)
+        vocab[key] = vocab.get(key, 0) + freq
+    return vocab
 
 
 parser = argparse.ArgumentParser()
@@ -65,6 +74,10 @@ words = get_words(args.text)
 print("Words:")
 print(json.dumps(words, indent=2, ensure_ascii=False))
 
-freqs = get_word_frequencies(words)
+freqs = get_freqs(words)
 print("Frequencies:")
 print(json.dumps(freqs, indent=2, ensure_ascii=False))
+
+vocab = get_vocab(freqs)
+print("Vocab:")
+print(json.dumps(vocab, indent=2, ensure_ascii=False))
