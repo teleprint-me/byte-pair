@@ -70,6 +70,7 @@ implementation.
 
 - [A New Algorithm for Data Compression Optimization](https://arxiv.org/abs/1209.1045)
 - [Neural Machine Translation of Rare Words with Subword Units](https://arxiv.org/abs/1508.07909)
+- [Byte Pair Encoding](https://leimao.github.io/blog/Byte-Pair-Encoding/)
 - [Egalitarian Language Representation in Language Models](https://arxiv.org/abs/2409.11501)
 - [A Formal Perspective on Byte-Pair Encoding](https://arxiv.org/abs/2306.16837)
 - [A Statistical Extension of Byte-Pair Encoding](https://paperswithcode.com/paper/a-statistical-extension-of-byte-pair-encoding)

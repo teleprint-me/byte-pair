@@ -1,12 +1,5 @@
 """
-bpe.py - Byte Pair Encoder for building tokenization models
-
-Byte Pair Encoder (BPE) Tokenization for Natural Language Processing
-
-Original Paper: https://arxiv.org/abs/1209.1045
-Referenced Paper: https://paperswithcode.com/method/bpe
-Blog Tutorial: https://leimao.github.io/blog/Byte-Pair-Encoding/
-
+bpe.py
 Algorithm 1 Learn BPE operations
 """
 
