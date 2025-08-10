@@ -43,13 +43,13 @@ def scan(text: str):
 def get_words(path: str = None) -> list[str]:
     if path:
         with open(path, "r", encoding="utf-8") as file:
-            return [w for w in scan(file.read())]
-    return [w for w in scan("lo low lower newest wide wider widest")]
+            return list(scan(file.read()))
+    return list(scan("lo low lower newest wide wider widest"))
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--text", default=None, type=str)
 args = parser.parse_args()
 
-words = get_words(args.text)
+words = list(set(get_words(args.text)))
 print(json.dumps(words, indent=2, ensure_ascii=False))
