@@ -234,10 +234,10 @@ class Tokenizer:
                 break  # no more merges
 
             # merge
-            merged_token = (
-                self.id_to_token[ids[best_idx]] + self.id_to_token[ids[best_idx + 1]]
-            )
-            ids[best_idx] = self.token_to_id[merged_token]
+            tok_a = self.id_to_token[ids[best_idx]]
+            tok_b = self.id_to_token[ids[best_idx + 1]]
+            merged = tok_a + tok_b
+            ids[best_idx] = self.token_to_id[merged]
             del ids[best_idx + 1]
 
         return ids
