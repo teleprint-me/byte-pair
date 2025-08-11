@@ -4,6 +4,7 @@
 
 import argparse
 import json
+import math
 
 
 def get_words(path: str = None) -> list[str]:
@@ -85,6 +86,34 @@ def train(vocab: dict[str, int], num_merges: int) -> dict[str, int]:
         vocab = get_merges(vocab, best)
         print(f"best[{i}]: ({best}, {freq})")
     return vocab, merges
+
+
+# we need to inject base alphabet here?
+# probably printable in ASCII range [0, 256)?
+def get_tokens(vocab: dict[str, int]) -> list[str]:
+    tokens = set()
+    for word in vocab:
+        for subword in word.split():
+            tokens.add(subword)
+    return sorted(list(tokens))
+
+
+# required to calculate scores
+def get_ranks(merges: list[tuple[str, str], int]) -> dict[str, int]:
+    ranks = {}
+    for i, (pair, freq) in enumerate(merges):
+        token = "".join(pair)
+        ranks[token] = i
+    return ranks
+
+
+# used in prompt-processing
+def get_scores(tokens: list[str], ranks: dict[str, int]) -> dict[str, int]:
+    scores = {}
+    for t in tokens:
+        r = ranks.get(t)
+        scores[t] = -math.log(r + 1) if r else -1e6
+    return scores
 
 
 parser = argparse.ArgumentParser()
