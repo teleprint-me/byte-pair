@@ -23,13 +23,10 @@ def get_freqs(words: list[str]) -> dict[str, int]:
     return freqs
 
 
-def get_vocab(freqs: str = None, stop: str = None) -> dict[str, int]:
+def get_vocab(freqs: str = None) -> dict[str, int]:
     vocab: dict[str, int] = {}
     for w, c in freqs.items():
-        if stop:
-            symbols = " ".join(list(w)) + f" {stop}"
-        else:
-            symbols = " ".join(list(w))
+        symbols = " ".join(list(w))
         vocab[symbols] = c
     return vocab
 
@@ -77,30 +74,36 @@ def get_merges(vocab: dict[str, int], pair: tuple[str, str]) -> dict[str, int]:
 
 
 def train(vocab: dict[str, int], num_merges: int) -> dict[str, int]:
+    merges = []
     for i in range(num_merges):
         pairs = get_pairs(vocab)
         if not pairs:
             print(f"Exhausted all pairs at step {i}.")
             break
         best, freq = get_best(pairs)
+        merges.append((best, freq))
         vocab = get_merges(vocab, best)
         print(f"best[{i}]: ({best}, {freq})")
-    return vocab
+    return vocab, merges
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-m", "--merges", default=10, type=int)
 parser.add_argument("-c", "--corpus", default=None, type=str)
-parser.add_argument("-e", "--eos", default=None, type=str)
 args = parser.parse_args()
 
 words = get_words(args.corpus)
 freqs = get_freqs(words)
-vocab = get_vocab(freqs, args.eos)
+vocab = get_vocab(freqs)
+
 print("Initial Vocab:")
 print(json.dumps(vocab, indent=2))
 
-vocab = train(vocab, args.merges)
+vocab, merges = train(vocab, args.merges)
+
+print("Final Merges")
+for i, (pair, freq) in enumerate(merges):
+    print(f"merge[{i}]: ({pair}), {freq}")
 
 print("Final Vocab")
 print(json.dumps(vocab, indent=2))
