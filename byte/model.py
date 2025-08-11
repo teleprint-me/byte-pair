@@ -9,9 +9,9 @@
 - JSON save/load of the model
 
 Usage:
-  python byte_model.py -c samples/simple.md -m 15 -v
-  python byte_model.py --save my_bpe.json -c samples/simple.md -m 200
-  python byte_model.py --load my_bpe.json -v
+  python -m byte.model -c samples/simple.md -m 15 -v
+  python -m byte.model --save my_bpe.json -c samples/simple.md -m 200
+  python -m byte.model --load my_bpe.json -v
 """
 
 import argparse
