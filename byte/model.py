@@ -245,7 +245,7 @@ class Tokenizer:
     def decode(self, ids: list[int]) -> str:
         text = ""
         for i in ids:
-            text += self.id_to_token.get(i, -1)  # -1 is unk
+            text += self.id_to_token.get(i, "�")  # unk token
         return text
 
 
