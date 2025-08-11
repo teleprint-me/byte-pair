@@ -149,6 +149,7 @@ class Tokenizer:
         self.model["merges"] = value
 
     def train(self, num_merges: int) -> None:
+        print("[training] Initialized.")
         self.merges = []
         for i in range(num_merges):
             pairs = Model.pairs(self.vocab)
@@ -158,7 +159,8 @@ class Tokenizer:
             best, freq = Model.best(pairs)
             self.merges.append(best)
             self.vocab = Model.merges(self.vocab, best)
-            print(f"best[{i}]: ({best}, {freq})")
+            print(f"[training] merge[{i}] ({best}, {freq})")
+        print("[training] Completed.")
 
     @property
     @functools.lru_cache
