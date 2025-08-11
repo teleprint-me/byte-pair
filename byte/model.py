@@ -240,6 +240,12 @@ class Tokenizer:
 
         return ids
 
+    def decode(self, ids: list[int]) -> str:
+        text = ""
+        for i in ids:
+            text += self.id_to_token.get(i, -1)  # -1 is unk
+        return text
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -273,7 +279,10 @@ def main():
         print(json.dumps(tokenizer.token_to_id, indent=2, ensure_ascii=False))
 
     print("Prompt processing:")
-    print(tokenizer.encode("hello"))
+    ids = tokenizer.encode("Hello, world!")
+    print(f"encoded: {ids}")
+    text = tokenizer.decode(ids)
+    print(f"decoded: {text}")
 
 
 if __name__ == "__main__":
