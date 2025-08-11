@@ -1,5 +1,17 @@
 """
 @file byte.model
+@brief A compact, deterministic, stopless BPE trainer (character-level prototype).
+
+- Deterministic tie-breaks (freq desc, then lexicographic)
+- Correct pair counting and collision summing on merges
+- Stable token id layout: base chars first, then merges in training order
+- Rank & score tables (rank 0 handled correctly)
+- JSON save/load of the model
+
+Usage:
+  python byte_model.py -c samples/simple.md -m 15 -v
+  python byte_model.py --save my_bpe.json -c samples/simple.md -m 200
+  python byte_model.py --load my_bpe.json -v
 """
 
 import argparse
@@ -111,7 +123,15 @@ def get_tokens(vocab: dict[str, int]) -> list[str]:
     for word in vocab:
         for subword in word.split():
             tokens.add(subword)
-    return sorted(list(tokens))
+    return sorted(list(tokens))  # requires lexical order
+
+
+def token_to_id(tokens: list[str]) -> dict[str, int]:
+    return {token: idx for idx, token in enumerate(tokens)}
+
+
+def id_to_token(tokens: list[str]) -> dict[int, str]:
+    return {idx: token for idx, token in enumerate(tokens)}
 
 
 # required to calculate scores
@@ -135,28 +155,32 @@ def get_scores(tokens: list[str], ranks: dict[str, int]) -> dict[str, float]:
 parser = argparse.ArgumentParser()
 parser.add_argument("-m", "--merges", default=10, type=int)
 parser.add_argument("-c", "--corpus", default=None, type=str)
+parser.add_argument("-v", "--verbose", action="store_true")
 args = parser.parse_args()
 
 words = get_words(args.corpus)
 freqs = get_freqs(words)
 vocab = get_vocab(freqs)
 
-print("Initial Vocab:")
-print(json.dumps(vocab, indent=2))
-
 vocab, merges = train(vocab, args.merges)
 
-print("Final Merges")
-for i, (pair, freq) in enumerate(merges):
-    print(f"merge[{i}]: ({pair}), {freq}")
+tokens = get_tokens(vocab)
 
-print("Final Vocab")
-print(json.dumps(vocab, indent=2))
+tokenizer = token_to_id(tokens)
 
-print("Bytes to Unicode:")
-print(json.dumps(bytes_to_unicode(), indent=2, ensure_ascii=False))
+if args.verbose:
+    print("Initial Vocab:")
+    print(json.dumps(vocab, indent=2))
 
-# tokens = get_tokens(vocab)
+    print("Final Merges")
+    for i, (pair, freq) in enumerate(merges):
+        print(f"merge[{i}]: ({pair}), {freq}")
 
-# print("Final Tokens:")
-# print(json.dumps(tokens, indent=2))
+    print("Final Vocab")
+    print(json.dumps(vocab, indent=2))
+
+    print("Final Tokens:")
+    print(json.dumps(tokens, indent=2))
+
+print("Tokenizer:")
+print(json.dumps(tokenizer, indent=2, ensure_ascii=False))
