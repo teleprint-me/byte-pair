@@ -75,12 +75,12 @@ def get_pairs(vocab: dict[str, int]) -> dict[tuple[str, str], int]:
 
 
 def get_best(pairs: dict[tuple[str, str], int]) -> tuple[tuple[str, str], int]:
-    best_pair = None
+    best_pair = ()
     best_freq = -1
     for pair, freq in pairs.items():
         if freq > best_freq:
             best_pair, best_freq = pair, freq
-        elif freq == best_freq and best_pair is not None and pair < best_pair:
+        elif freq == best_freq and best_pair and pair < best_pair:
             best_pair = pair  # lexicographic tie-break
     return best_pair, best_freq
 
