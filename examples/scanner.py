@@ -74,9 +74,7 @@ def get_pairs(vocab: dict[str, int]) -> dict[tuple[str, str], int]:
     return pairs
 
 
-def get_best(
-    pairs: dict[tuple[str, str], int]
-) -> tuple[tuple[str, str], int] | tuple[None, int]:
+def get_best(pairs: dict[tuple[str, str], int]) -> tuple[tuple[str, str], int]:
     best_pair = None
     best_freq = -1
     for pair, freq in pairs.items():
@@ -129,8 +127,8 @@ print("Pairs:")
 for pair, freq in pairs.items():
     print(pair, freq)
 
-best = get_best(pairs)[0]
-print(f"best: {best}")
+best, freq = get_best(pairs)
+print(f"best: ({best}, {freq})")
 
 vocab = get_merges(vocab, best)
 print("Merges:")
