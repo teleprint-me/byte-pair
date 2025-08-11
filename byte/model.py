@@ -1,4 +1,6 @@
 """
+Copyright © 2025 Austin Berrio
+
 @file byte.model
 @brief A compact, deterministic, stopless BPE trainer (character-level prototype).
 
@@ -15,172 +17,283 @@ Usage:
 """
 
 import argparse
+import functools
 import json
 import math
+from typing import Optional
 
 
-def get_words(path: str = None) -> list[str]:
-    if path:
-        with open(path, "r", encoding="utf-8") as file:
-            return file.read().split()
-    return "lo low lower newest wide wider widest".split()
+class Vocab:
+    @staticmethod
+    def file(path: Optional[str] = None) -> str:
+        """Read text from plain text file."""
+        if path:
+            with open(path, "r", encoding="utf-8") as f:
+                return f.read()
+        return "lo low lower newest wide wider widest"
+
+    @staticmethod
+    def pre_tokenize(text: str) -> list[str]:
+        """Pre-tokenize the text input."""
+        # break at all spaces
+        return text.split()  # e.g. " ", "\t", "\r", "\n", etc.
+
+    @staticmethod
+    def frequencies(pre: list[str]) -> dict[str, int]:
+        """Accumulate word frequencies."""
+        freqs = {}
+        for word in pre:
+            freqs[word] = freqs.get(word, 0) + 1
+        return freqs
+
+    @staticmethod
+    def symbols(freqs: dict[str, int]) -> dict[str, int]:
+        """Initialize word tokens."""
+        vocab = {}
+        for word, freq in freqs.items():
+            symbols = " ".join(list(word))
+            vocab[symbols] = freq
+        return vocab
+
+    @staticmethod
+    def tokenize(text: str) -> dict[str, int]:
+        pre = Vocab.pre_tokenize(text)
+        freqs = Vocab.frequencies(pre)
+        return Vocab.symbols(freqs)
+
+    @staticmethod
+    def build(path: Optional[str] = None) -> dict[str, int]:
+        """Build the initial vocabulary."""
+        text = Vocab.file(path)
+        return Vocab.tokenize(text)
 
 
-def get_freqs(words: list[str]) -> dict[str, int]:
-    freqs = {}
-    for word in words:
-        if word in freqs:
-            freqs[word] += 1
-        else:
-            freqs[word] = 1
-    return freqs
+class Model:
+    @staticmethod
+    def pairs(vocab: dict[str, int]) -> dict[tuple[str, str], int]:
+        new_pairs = {}
+        for word, freq in vocab.items():
+            syms = word.split()  # relies on space-separated symbols
+            for i in range(len(syms) - 1):
+                new_pair = (syms[i], syms[i + 1])
+                new_pairs[new_pair] = new_pairs.get(new_pair, 0) + freq
+        return new_pairs
+
+    @staticmethod
+    def best(pairs: dict[tuple[str, str], int]) -> tuple[tuple[str, str], int]:
+        best_pair = ()
+        best_freq = -1
+        for pair, freq in pairs.items():
+            if freq > best_freq:
+                best_pair, best_freq = pair, freq
+            elif freq == best_freq and best_pair and pair < best_pair:
+                best_pair = pair  # lexicographic tie-break
+        return best_pair, best_freq
+
+    @staticmethod
+    def merges(vocab: dict[str, int], pair: tuple[str, str]) -> dict[str, int]:
+        a, b = pair
+        new_vocab: dict[str, int] = {}
+
+        for word, freq in vocab.items():
+            syms = word.split()  # spaces need to be escaped
+            out = []
+            i = 0
+            while i < len(syms):
+                if i + 1 < len(syms) and syms[i] == a and syms[i + 1] == b:
+                    out.append(a + b)  # merge the pair
+                    i += 2  # skip the next symbol (non-overlapping)
+                else:
+                    out.append(syms[i])
+                    i += 1
+            new_word = " ".join(out)
+            new_vocab[new_word] = new_vocab.get(new_word, 0) + freq  # sum collisions
+
+        return new_vocab
 
 
-def get_vocab(freqs: str = None) -> dict[str, int]:
-    vocab: dict[str, int] = {}
-    for w, c in freqs.items():
-        symbols = " ".join(list(w))
-        vocab[symbols] = c
-    return vocab
+class Tokenizer:
+    def __init__(self, vocab: dict[str, int]):
+        self.model = {
+            "type": "BPE",
+            "version": "0.1.0",
+            "vocab": vocab,
+            "merges": [],
+        }
 
+    def __len__(self) -> int:
+        return len(self.token_to_id)
 
-def get_pairs(vocab: dict[str, int]) -> dict[tuple[str, str], int]:
-    new_pairs = {}
-    for word, freq in vocab.items():
-        syms = word.split()  # relies on space-separated symbols
-        for i in range(len(syms) - 1):
-            new_pair = (syms[i], syms[i + 1])
-            new_pairs[new_pair] = new_pairs.get(new_pair, 0) + freq
-    return new_pairs
+    @property
+    def type(self) -> str:
+        return self.model["type"]
 
+    @property
+    def version(self) -> str:
+        return self.model["version"]
 
-def get_best(pairs: dict[tuple[str, str], int]) -> tuple[tuple[str, str], int]:
-    best_pair = ()
-    best_freq = -1
-    for pair, freq in pairs.items():
-        if freq > best_freq:
-            best_pair, best_freq = pair, freq
-        elif freq == best_freq and best_pair and pair < best_pair:
-            best_pair = pair  # lexicographic tie-break
-    return best_pair, best_freq
+    @property
+    def vocab(self) -> dict[str, int]:
+        return self.model["vocab"]
 
+    @vocab.setter
+    def vocab(self, value: dict[str, int]) -> None:
+        self.model["vocab"] = value
 
-def get_merges(vocab: dict[str, int], pair: tuple[str, str]) -> dict[str, int]:
-    a, b = pair
-    new_vocab: dict[str, int] = {}
+    @property
+    def merges(self) -> list[tuple[str, str]]:
+        return self.model["merges"]
 
-    for word, freq in vocab.items():
-        syms = word.split()  # spaces need to be escaped
-        out = []
-        i = 0
-        while i < len(syms):
-            if i + 1 < len(syms) and syms[i] == a and syms[i + 1] == b:
-                out.append(a + b)  # merge the pair
-                i += 2  # skip the next symbol (non-overlapping)
-            else:
-                out.append(syms[i])
-                i += 1
-        new_word = " ".join(out)
-        new_vocab[new_word] = new_vocab.get(new_word, 0) + freq  # sum collisions
+    @merges.setter
+    def merges(self, value: list[tuple[str, str]]):
+        self.model["merges"] = value
 
-    return new_vocab
+    def train(self, num_merges: int) -> None:
+        self.merges = []
+        for i in range(num_merges):
+            pairs = Model.pairs(self.vocab)
+            if not pairs:
+                print(f"Exhausted all pairs at step {i}.")
+                break
+            best, freq = Model.best(pairs)
+            self.merges.append(best)
+            self.vocab = Model.merges(self.vocab, best)
+            print(f"best[{i}]: ({best}, {freq})")
 
+    @property
+    @functools.lru_cache
+    def unicode(self) -> dict[int, str]:
+        """Generate a ASCII map."""
+        cpts = [cp for cp in range(256)]  # ascii base
+        return {cp: chr(cp) for cp in cpts}  # ascii map
 
-def train(vocab: dict[str, int], num_merges: int) -> dict[str, int]:
-    merges = []
-    for i in range(num_merges):
-        pairs = get_pairs(vocab)
+    @property
+    @functools.lru_cache
+    def tokens(self) -> list[str]:
+        # we need to inject base alphabet here
+        tokens = set(self.unicode)
+        for word in self.vocab:  # must be vocab!
+            for subword in word.split():
+                tokens.add(subword)
+        # Assign IDs in sorted order (requires lexical order)
+        return sorted(list(tokens))
+
+    @property
+    @functools.lru_cache
+    def token_to_id(self) -> dict[str, int]:
+        return {token: idx for idx, token in enumerate(self.tokens)}
+
+    @property
+    @functools.lru_cache
+    def id_to_token(self) -> dict[int, str]:
+        return {idx: token for idx, token in enumerate(self.tokens)}
+
+    @property
+    @functools.lru_cache
+    def ranks(self) -> dict[str, int]:
+        # required to calculate scores
+        ranks = {}
+        for i, pair in enumerate(self.merges):  # must be merges!
+            token = "".join(pair)
+            ranks[token] = i
+        return ranks
+
+    @property
+    @functools.lru_cache
+    def scores(self) -> dict[str, float]:
+        # used in prompt-processing
+        scores = {}
+        for t in self.tokens:  # must be tokens!
+            r = self.ranks.get(t)
+            scores[t] = -math.log(r + 1) if r is not None else -1e6
+        return scores
+
+    def encode(self, text: str) -> list[int]:
+        # map text -> base tokens (byte-to-unicode first)
+        text = "".join(self.unicode[b] for b in text.encode("utf-8"))
+
+        vocab = Vocab.tokenize(text)
+        pairs = Model.pairs(vocab)
         if not pairs:
-            print(f"Exhausted all pairs at step {i}.")
-            break
-        best, freq = get_best(pairs)
-        merges.append((best, freq))
-        vocab = get_merges(vocab, best)
-        print(f"best[{i}]: ({best}, {freq})")
-    return vocab, merges
+            return text
+
+        ids = []
+        for ch in text:
+            tid = self.token_to_id.get(ch)
+            if tid is not None:
+                ids.append(tid)
+            else:
+                # Unknown base char (shouldn't happen if btou covers all bytes)
+                raise ValueError(f"Unknown base token: {repr(ch)}")
+
+        # greedy merge loop (like tokenizer_merge_token_ids)
+        while True:
+            best_rank = None
+            best_idx = None
+            for i in range(len(ids) - 1):
+                tok_a = list(token_to_id.keys())[
+                    list(token_to_id.values()).index(ids[i])
+                ]
+                tok_b = list(token_to_id.keys())[
+                    list(token_to_id.values()).index(ids[i + 1])
+                ]
+                pair = tok_a + tok_b
+                if pair in ranks:
+                    rank = ranks[pair]
+                    if best_rank is None or rank < best_rank:
+                        best_rank = rank
+                        best_idx = i
+            if best_idx is None:
+                break
+            # merge
+            tok_a = list(token_to_id.keys())[
+                list(token_to_id.values()).index(ids[best_idx])
+            ]
+            tok_b = list(token_to_id.keys())[
+                list(token_to_id.values()).index(ids[best_idx + 1])
+            ]
+            merged_token = tok_a + tok_b
+            ids[best_idx] = token_to_id[merged_token]
+            del ids[best_idx + 1]
+
+        return ids
 
 
-# https://github.com/openai/gpt-2/blob/master/src/encoder.py#L9
-def bytes_to_unicode() -> list[str]:
-    """Generate a GPT-2 Byte to Unicode map."""
-    base = list(range(ord("!"), ord("~") + 1))
-    base += list(range(ord("¡"), ord("¬") + 1))
-    base += list(range(ord("®"), ord("ÿ") + 1))
-    codepoints = base[:]
-    offset = 0  # Track added bytes
-    for char in range(256):
-        if char not in base:
-            base.append(char)
-            codepoints.append(256 + offset)
-            offset += 1  # Added a new byte
-    return [chr(c) for c in codepoints]
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-m", "--merges", default=10, type=int)
+    parser.add_argument("-c", "--corpus", default=None, type=str)
+    parser.add_argument("-v", "--verbose", action="store_true")
+    args = parser.parse_args()
+
+    vocab = Vocab.build(args.corpus)
+    tokenizer = Tokenizer(vocab)
+    tokenizer.train(args.merges)
+
+    tokens = tokenizer.vocab
+    tokenizer = tokenizer.tokens
+    ranks = tokenizer.ranks
+
+    if args.verbose:
+        print("Initial Vocab:")
+        print(json.dumps(vocab, indent=2))
+
+        print("Final Merges")
+        for i, (pair, freq) in enumerate(tokenizer.merges):
+            print(f"merge[{i}]: ({pair}), {freq}")
+
+        print("Final Vocab")
+        print(json.dumps(vocab, indent=2))
+
+        print("Final Tokens:")
+        print(json.dumps(tokens, indent=2))
+
+    print(f"Tokenizer (size={len(tokenizer)}):")
+    print(json.dumps(tokenizer, indent=2, ensure_ascii=False))
+
+    print("Prompt processing:")
+    print(tokenizer.encode("hello", ranks, tokenizer))
 
 
-# we need to inject base alphabet here?
-# probably printable in ASCII range [0, 256)?
-def get_tokens(vocab: dict[str, int]) -> list[str]:
-    tokens = set(bytes_to_unicode())
-    for word in vocab:
-        for subword in word.split():
-            tokens.add(subword)
-    return sorted(list(tokens))  # requires lexical order
-
-
-def token_to_id(tokens: list[str]) -> dict[str, int]:
-    return {token: idx for idx, token in enumerate(tokens)}
-
-
-def id_to_token(tokens: list[str]) -> dict[int, str]:
-    return {idx: token for idx, token in enumerate(tokens)}
-
-
-# required to calculate scores
-def get_ranks(merges: list[tuple[tuple[str, str], int]]) -> dict[str, int]:
-    ranks = {}
-    for i, (pair, freq) in enumerate(merges):
-        token = "".join(pair)
-        ranks[token] = i
-    return ranks
-
-
-# used in prompt-processing
-def get_scores(tokens: list[str], ranks: dict[str, int]) -> dict[str, float]:
-    scores = {}
-    for t in tokens:
-        r = ranks.get(t)
-        scores[t] = -math.log(r + 1) if r else -1e6
-    return scores
-
-
-parser = argparse.ArgumentParser()
-parser.add_argument("-m", "--merges", default=10, type=int)
-parser.add_argument("-c", "--corpus", default=None, type=str)
-parser.add_argument("-v", "--verbose", action="store_true")
-args = parser.parse_args()
-
-words = get_words(args.corpus)
-freqs = get_freqs(words)
-vocab = get_vocab(freqs)
-
-vocab, merges = train(vocab, args.merges)
-
-tokens = get_tokens(vocab)
-
-tokenizer = token_to_id(tokens)
-
-if args.verbose:
-    print("Initial Vocab:")
-    print(json.dumps(vocab, indent=2))
-
-    print("Final Merges")
-    for i, (pair, freq) in enumerate(merges):
-        print(f"merge[{i}]: ({pair}), {freq}")
-
-    print("Final Vocab")
-    print(json.dumps(vocab, indent=2))
-
-    print("Final Tokens:")
-    print(json.dumps(tokens, indent=2))
-
-print("Tokenizer:")
-print(json.dumps(tokenizer, indent=2, ensure_ascii=False))
+if __name__ == "__main__":
+    main()
