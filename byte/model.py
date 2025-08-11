@@ -35,12 +35,13 @@ def get_vocab(freqs: str = None, stop: str = None) -> dict[str, int]:
 
 
 def get_pairs(vocab: dict[str, int]) -> dict[tuple[str, str], int]:
-    pairs = {}
+    new_pairs = {}
     for word, freq in vocab.items():
         syms = word.split()  # relies on space-separated symbols
         for i in range(len(syms) - 1):
-            pairs[(syms[i], syms[i + 1])] = vocab.get(word, 0) + freq
-    return pairs
+            new_pair = (syms[i], syms[i + 1])
+            new_pairs[new_pair] = new_pairs.get(new_pair, 0) + freq
+    return new_pairs
 
 
 def get_best(pairs: dict[tuple[str, str], int]) -> tuple[tuple[str, str], int]:
