@@ -88,10 +88,26 @@ def train(vocab: dict[str, int], num_merges: int) -> dict[str, int]:
     return vocab, merges
 
 
+# https://github.com/openai/gpt-2/blob/master/src/encoder.py#L9
+def bytes_to_unicode() -> list[str]:
+    """Generate a GPT-2 Byte to Unicode map."""
+    base = list(range(ord("!"), ord("~") + 1))
+    base += list(range(ord("¡"), ord("¬") + 1))
+    base += list(range(ord("®"), ord("ÿ") + 1))
+    codepoints = base[:]
+    offset = 0  # Track added bytes
+    for char in range(256):
+        if char not in base:
+            base.append(char)
+            codepoints.append(256 + offset)
+            offset += 1  # Added a new byte
+    return [chr(c) for c in codepoints]
+
+
 # we need to inject base alphabet here?
 # probably printable in ASCII range [0, 256)?
 def get_tokens(vocab: dict[str, int]) -> list[str]:
-    tokens = set()
+    tokens = set(bytes_to_unicode())
     for word in vocab:
         for subword in word.split():
             tokens.add(subword)
@@ -99,7 +115,7 @@ def get_tokens(vocab: dict[str, int]) -> list[str]:
 
 
 # required to calculate scores
-def get_ranks(merges: list[tuple[str, str], int]) -> dict[str, int]:
+def get_ranks(merges: list[tuple[tuple[str, str], int]]) -> dict[str, int]:
     ranks = {}
     for i, (pair, freq) in enumerate(merges):
         token = "".join(pair)
@@ -108,7 +124,7 @@ def get_ranks(merges: list[tuple[str, str], int]) -> dict[str, int]:
 
 
 # used in prompt-processing
-def get_scores(tokens: list[str], ranks: dict[str, int]) -> dict[str, int]:
+def get_scores(tokens: list[str], ranks: dict[str, int]) -> dict[str, float]:
     scores = {}
     for t in tokens:
         r = ranks.get(t)
@@ -136,3 +152,11 @@ for i, (pair, freq) in enumerate(merges):
 
 print("Final Vocab")
 print(json.dumps(vocab, indent=2))
+
+print("Bytes to Unicode:")
+print(json.dumps(bytes_to_unicode(), indent=2, ensure_ascii=False))
+
+# tokens = get_tokens(vocab)
+
+# print("Final Tokens:")
+# print(json.dumps(tokens, indent=2))
