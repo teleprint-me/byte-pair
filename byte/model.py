@@ -3,12 +3,17 @@
 """
 
 import argparse
-import collections
 import json
-import regex as re
 
 
-def get_freqs(words: list[str]):
+def get_words(path: str = None) -> list[str]:
+    if path:
+        with open(path, "r", encoding="utf-8") as file:
+            return file.read().split()
+    return "lo low lower newest wide wider widest".split()
+
+
+def get_freqs(words: list[str]) -> dict[str, int]:
     freqs = {}
     for word in words:
         if word in freqs:
@@ -18,25 +23,7 @@ def get_freqs(words: list[str]):
     return freqs
 
 
-def get_words(path: str = None) -> list[str]:
-    # It's very annoying that there's no escaping this.
-    # The primary issue with regex is that delims are omitted from the final results.
-    # I've tried using other tools, but the inverse is true as well. e.g. re.split()
-    # A key realization I had was that for most langs,
-    # we only need to split at spaces and punctuation.
-    # The caveat is that we must capture spaces and punctuation as well.
-    # The best way to probably achieve this is to do it manually.
-    # https://github.com/openai/gpt-2/blob/master/src/encoder.py#L53C35-L53C109
-    PRE = r"'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"
-    if path:
-        with open(path, "r", encoding="utf-8") as file:
-            return re.findall(PRE, file.read())
-    return re.findall(PRE, "lo low lower newest wide wider widest")
-
-
-def get_vocab(path: str = None, stop: str = None) -> dict[str, int]:
-    words = get_words(path)
-    freqs = get_freqs(words)
+def get_vocab(freqs: str = None, stop: str = None) -> dict[str, int]:
     vocab: dict[str, int] = {}
     for w, c in freqs.items():
         if stop:
@@ -48,23 +35,21 @@ def get_vocab(path: str = None, stop: str = None) -> dict[str, int]:
 
 
 def get_pairs(vocab: dict[str, int]) -> dict[tuple[str, str], int]:
-    pairs = collections.defaultdict(int)
+    pairs = {}
     for word, freq in vocab.items():
-        symbols = word.split()  # relies on space-separated symbols
-        for i in range(len(symbols) - 1):
-            pairs[(symbols[i], symbols[i + 1])] += freq
+        syms = word.split()  # relies on space-separated symbols
+        for i in range(len(syms) - 1):
+            pairs[(syms[i], syms[i + 1])] = vocab.get(word, 0) + freq
     return pairs
 
 
-def get_best_pair(
-    pairs: dict[tuple[str, str], int]
-) -> tuple[tuple[str, str], int] | tuple[None, int]:
-    best_pair = None
+def get_best(pairs: dict[tuple[str, str], int]) -> tuple[tuple[str, str], int]:
+    best_pair = ()
     best_freq = -1
     for pair, freq in pairs.items():
         if freq > best_freq:
             best_pair, best_freq = pair, freq
-        elif freq == best_freq and best_pair is not None and pair < best_pair:
+        elif freq == best_freq and best_pair and pair < best_pair:
             best_pair = pair  # lexicographic tie-break
     return best_pair, best_freq
 
@@ -96,9 +81,9 @@ def train(vocab: dict[str, int], num_merges: int) -> dict[str, int]:
         if not pairs:
             print(f"Exhausted all pairs at step {i}.")
             break
-        best = get_best_pair(pairs)[0]
+        best, freq = get_best(pairs)
         vocab = get_merges(vocab, best)
-        print(f"best[{i}]: {best}")
+        print(f"best[{i}]: ({best}, {freq})")
     return vocab
 
 
@@ -108,7 +93,9 @@ parser.add_argument("-c", "--corpus", default=None, type=str)
 parser.add_argument("-e", "--eos", default=None, type=str)
 args = parser.parse_args()
 
-vocab = get_vocab(args.corpus, args.eos)
+words = get_words(args.corpus)
+freqs = get_freqs(words)
+vocab = get_vocab(freqs, args.eos)
 print("Initial Vocab:")
 print(json.dumps(vocab, indent=2))
 
