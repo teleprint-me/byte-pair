@@ -171,7 +171,7 @@ class Tokenizer:
     @functools.lru_cache
     def tokens(self) -> list[str]:
         # we need to inject base alphabet here
-        tokens = set(self.unicode)
+        tokens = set(self.unicode.values())
         for word in self.vocab:  # must be vocab!
             for subword in word.split():
                 tokens.add(subword)
@@ -209,51 +209,33 @@ class Tokenizer:
         return scores
 
     def encode(self, text: str) -> list[int]:
-        # map text -> base tokens (byte-to-unicode first)
+        # Phase 1: Map text → byte-to-unicode base tokens
         text = "".join(self.unicode[b] for b in text.encode("utf-8"))
+        ids = [self.token_to_id[ch] for ch in text]
 
-        vocab = Vocab.tokenize(text)
-        pairs = Model.pairs(vocab)
-        if not pairs:
-            return text
-
-        ids = []
-        for ch in text:
-            tid = self.token_to_id.get(ch)
-            if tid is not None:
-                ids.append(tid)
-            else:
-                # Unknown base char (shouldn't happen if btou covers all bytes)
-                raise ValueError(f"Unknown base token: {repr(ch)}")
-
-        # greedy merge loop (like tokenizer_merge_token_ids)
+        # Phase 2: Greedy merges using ranks
         while True:
             best_rank = None
             best_idx = None
+
+            # scan for best pair
             for i in range(len(ids) - 1):
-                tok_a = list(token_to_id.keys())[
-                    list(token_to_id.values()).index(ids[i])
-                ]
-                tok_b = list(token_to_id.keys())[
-                    list(token_to_id.values()).index(ids[i + 1])
-                ]
-                pair = tok_a + tok_b
-                if pair in ranks:
-                    rank = ranks[pair]
-                    if best_rank is None or rank < best_rank:
-                        best_rank = rank
-                        best_idx = i
+                tok_a = self.id_to_token[ids[i]]
+                tok_b = self.id_to_token[ids[i + 1]]
+                merged = tok_a + tok_b
+                rank = self.ranks.get(merged)
+                if rank is not None and (best_rank is None or rank < best_rank):
+                    best_rank = rank
+                    best_idx = i
+
             if best_idx is None:
-                break
+                break  # no more merges
+
             # merge
-            tok_a = list(token_to_id.keys())[
-                list(token_to_id.values()).index(ids[best_idx])
-            ]
-            tok_b = list(token_to_id.keys())[
-                list(token_to_id.values()).index(ids[best_idx + 1])
-            ]
-            merged_token = tok_a + tok_b
-            ids[best_idx] = token_to_id[merged_token]
+            merged_token = (
+                self.id_to_token[ids[best_idx]] + self.id_to_token[ids[best_idx + 1]]
+            )
+            ids[best_idx] = self.token_to_id[merged_token]
             del ids[best_idx + 1]
 
         return ids
@@ -270,29 +252,28 @@ def main():
     tokenizer = Tokenizer(vocab)
     tokenizer.train(args.merges)
 
-    tokens = tokenizer.vocab
-    tokenizer = tokenizer.tokens
-    ranks = tokenizer.ranks
-
     if args.verbose:
         print("Initial Vocab:")
         print(json.dumps(vocab, indent=2))
 
-        print("Final Merges")
+        print("Final Vocab")
+        print(json.dumps(tokenizer.vocab, indent=2))
+
+        print("Best Merges")
         for i, (pair, freq) in enumerate(tokenizer.merges):
             print(f"merge[{i}]: ({pair}), {freq}")
 
-        print("Final Vocab")
-        print(json.dumps(vocab, indent=2))
+        print("Tokens:")
+        print(json.dumps(tokenizer.tokens, indent=2))
 
-        print("Final Tokens:")
-        print(json.dumps(tokens, indent=2))
+        print("Model:")
+        print(json.dumps(tokenizer.model, indent=2, ensure_ascii=False))
 
-    print(f"Tokenizer (size={len(tokenizer)}):")
-    print(json.dumps(tokenizer, indent=2, ensure_ascii=False))
+        print(f"Tokenizer (size={len(tokenizer)}):")
+        print(json.dumps(tokenizer.token_to_id, indent=2, ensure_ascii=False))
 
     print("Prompt processing:")
-    print(tokenizer.encode("hello", ranks, tokenizer))
+    print(tokenizer.encode("hello"))
 
 
 if __name__ == "__main__":
