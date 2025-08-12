@@ -116,13 +116,13 @@ class Tokenizer:
     def __init__(self, vocab: dict[str, int]):
         self.model = {
             "type": "BPE",
-            "version": "0.1.0",
+            "version": "0.1.5",
             "vocab": vocab,
             "merges": [],
         }
 
     def __len__(self) -> int:
-        return len(self.token_to_id)
+        return len(self.tokens)
 
     @property
     def type(self) -> str:
@@ -148,8 +148,21 @@ class Tokenizer:
     def merges(self, value: list[tuple[str, str]]):
         self.model["merges"] = value
 
+    def invalidate_cache(self) -> None:
+        # property objects keep the cached function on .fget
+        for prop in (
+            "unicode",
+            "tokens",
+            "token_to_id",
+            "id_to_token",
+            "ranks",
+            "scores",
+        ):
+            getattr(self.__class__, prop).fget.cache_clear()
+
     def train(self, num_merges: int) -> None:
         print("[training] Initialized.")
+        self.invalidate_cache()
         self.merges = []
         for i in range(num_merges):
             pairs = Model.pairs(self.vocab)
@@ -161,6 +174,14 @@ class Tokenizer:
             self.vocab = Model.merges(self.vocab, best)
             print(f"[training] merge[{i}] ({best}, {freq})")
         print("[training] Completed.")
+
+    def save(self, path: str) -> None:
+        with open(path, "w", encoding="utf-8") as file:
+            json.dump(self.model, file, ensure_ascii=False, indent=2)
+
+    def load(self, path: str) -> None:
+        with open(path, "r", encoding="utf-8") as file:
+            self.model = json.load(file, ensure_ascii=False)
 
     @property
     @functools.lru_cache
@@ -179,6 +200,14 @@ class Tokenizer:
                 tokens.add(subword)
         # Assign IDs in sorted order (requires lexical order)
         return sorted(list(tokens))
+
+    @property
+    def num_merges(self) -> int:
+        return len(self.merges)
+
+    @property
+    def vocab_size(self) -> int:
+        return len(self.tokens)
 
     @property
     @functools.lru_cache
@@ -211,11 +240,13 @@ class Tokenizer:
         return scores
 
     def encode(self, text: str) -> list[int]:
-        # Phase 1: Map text → byte-to-unicode base tokens
+        # Map text -> byte-to-unicode base tokens
         text = "".join(self.unicode[b] for b in text.encode("utf-8"))
         ids = [self.token_to_id[ch] for ch in text]
+        if not self.ranks:  # quick exit when no merges were learned
+            return ids
 
-        # Phase 2: Greedy merges using ranks
+        # Greedy merges using ranks
         while True:
             best_rank = None
             best_idx = None
@@ -253,38 +284,41 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--merges", default=10, type=int)
     parser.add_argument("-c", "--corpus", default=None, type=str)
+    parser.add_argument("-s", "--save", default=None, type=str)
+    parser.add_argument("-l", "--load", default=None, type=str)
+    parser.add_argument("-p", "--prompt", default="Hello, world!", type=str)
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
 
-    vocab = Vocab.build(args.corpus)
-    tokenizer = Tokenizer(vocab)
-    tokenizer.train(args.merges)
+    tokenizer = None
+    if args.load:
+        # load model (vocab + merges) from disk
+        tokenizer = Tokenizer(vocab={})
+        tokenizer.load(args.load)
+    else:
+        vocab = Vocab.build(args.corpus)
+        tokenizer = Tokenizer(vocab)
+        tokenizer.train(args.merges)
+
+    if args.save:
+        tokenizer.save(args.save)
 
     if args.verbose:
-        print("Initial Vocab:")
-        print(json.dumps(vocab, indent=2))
-
-        print("Final Vocab")
-        print(json.dumps(tokenizer.vocab, indent=2))
-
-        print("Best Merges")
-        for i, (pair, freq) in enumerate(tokenizer.merges):
-            print(f"merge[{i}]: ({pair}), {freq}")
-
-        print("Tokens:")
-        print(json.dumps(tokenizer.tokens, indent=2))
-
         print("Model:")
-        print(json.dumps(tokenizer.model, indent=2, ensure_ascii=False))
-
+        model = tokenizer.model
+        model["vocab_size"] = tokenizer.vocab_size
+        model["num_merges"] = tokenizer.num_merges
+        print(json.dumps(model, indent=2, ensure_ascii=False))
         print(f"Tokenizer (size={len(tokenizer)}):")
         print(json.dumps(tokenizer.token_to_id, indent=2, ensure_ascii=False))
 
-    print("Prompt processing:")
-    ids = tokenizer.encode("Hello, world!")
-    print(f"encoded: {ids}")
-    text = tokenizer.decode(ids)
-    print(f"decoded: {text}")
+    if tokenizer:
+        print("Prompt:")
+        ids = tokenizer.encode(args.prompt)
+        print(f"encoded: {ids}")
+        print(f"decoded: {tokenizer.decode(ids)}")
+    else:
+        print("Use --load or --save to initialize a model!")
 
 
 if __name__ == "__main__":
