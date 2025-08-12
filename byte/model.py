@@ -181,7 +181,7 @@ class Tokenizer:
 
     def load(self, path: str) -> None:
         with open(path, "r", encoding="utf-8") as file:
-            self.model = json.load(file, ensure_ascii=False)
+            self.model = json.load(file)
 
     @property
     @functools.lru_cache
