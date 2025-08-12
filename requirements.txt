@@ -1,3 +1,5 @@
 bpython
 isort
 black
+flake8
+pytest
