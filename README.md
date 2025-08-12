@@ -10,6 +10,8 @@ and influenced by
 
 ## Features
 
+- **Zero Dependencies** — The implementation is self-contained and does not
+  require any external libraries.
 - **Tokenization** — Perform tokenization using the Byte-Pair Encoding
   algorithm.
 - **Vocabulary Management** — Build, analyze, and persist vocabularies.
@@ -30,7 +32,7 @@ and influenced by
    ```sh
    python -m venv .venv
    source .venv/bin/activate
-   pip install -r requirements.txt
+   pip install -r requirements.txt # optional dev dependencies
    ```
 
 ## Quick Start
