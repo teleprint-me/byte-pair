@@ -194,6 +194,7 @@ class Tokenizer:
     def load(self, path: str) -> None:
         with open(path, "r", encoding="utf-8") as file:
             self.model = json.load(file)
+        self.invalidate_cache()  # clear stale caches
 
     @property
     @functools.lru_cache
@@ -207,13 +208,19 @@ class Tokenizer:
     @property
     @functools.lru_cache
     def tokens(self) -> list[str]:
-        # we need to inject base alphabet here
-        tokens = set(self.unicode.values())
-        for word in self.vocab:  # must be vocab!
-            for subword in word.split():
-                tokens.add(subword)
-        # Assign IDs in sorted order (requires lexical order)
-        return sorted(list(tokens))
+        # Initialize a set to store tokens
+        tokens = set()
+
+        # Add all base characters to the tokens set
+        tokens.update(self.unicode.values())  # Must include alphabet!
+
+        # Iterate over each pair in the learned merges
+        for a, b in self.merges:  # Must include merges!
+            # Join the pair into a single string and add it to the tokens set
+            tokens.add("".join(a + b))
+
+        # Assign ids in lexical order
+        return sorted(list(tokens))  # Must be sorted!
 
     @property
     def num_merges(self) -> int:
