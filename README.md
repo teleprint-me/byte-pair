@@ -36,8 +36,44 @@ pip install -r requirements.txt
 
 3. **Run the Code**
 
+### Dry Run
+
+- **Verbose Output**: Run the model with verbose output to see detailed
+  information during execution.
+
 ```sh
-python -m byte.model -c samples/simple.md -m 10
+python -m byte.model -c samples/simple.md -m 15 -v
+```
+
+### Persist the Model
+
+- **Save Tokenizer**: Persist the model to a JSON file for later use.
+
+```sh
+python -m byte.model --save tokenizer.json -c samples/simple.md -m 200
+```
+
+- **Process Directory**: Process a directory of plain text files.
+
+```sh
+python -m byte.model --save tokenizer.json -c samples -m 200
+```
+
+## Load the Model
+
+- **Load Tokenizer**: Load the model from a JSON file and verify its
+  functionality.
+
+```sh
+python -m byte.model --load tokenizer.json -v
+```
+
+## Predict Token Pairs
+
+- **Predict Tokens**: Predict token pairs for a given text.
+
+```sh
+python -m byte.model --load tokenizer.json -p "Hello, world!" -v
 ```
 
 ## Usage
@@ -47,11 +83,6 @@ For comprehensive usage instructions and options, consult the documentation:
 ```sh
 python -m byte.model -h
 ```
-
-## Documentation
-
-Detailed information on how to use and contribute to the project is available
-in the [documentation](docs).
 
 ## Contributing
 
