@@ -40,13 +40,13 @@ and influenced by
 ### Dry Run with Verbose Output
 
 ```sh
-python -m byte.model -c samples/simple.md -m 15 -v
+python -m byte.model -c samples/simple.txt -m 15 -v
 ```
 
 ### Save a Trained Tokenizer
 
 ```sh
-python -m byte.model --save tokenizer.json -c samples/simple.md -m 20
+python -m byte.model --save tokenizer.json -c samples/simple.txt -m 20
 ```
 
 ### Process an Entire Directory
