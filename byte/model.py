@@ -282,7 +282,7 @@ class Tokenizer:
             tok_a = self.id_to_token[ids[best_idx]]
             tok_b = self.id_to_token[ids[best_idx + 1]]
             merged = tok_a + tok_b
-            ids[best_idx] = self.token_to_id[merged]
+            ids[best_idx] = self.token_to_id[merged]  # crashes here with key-error
             del ids[best_idx + 1]
 
         return ids
