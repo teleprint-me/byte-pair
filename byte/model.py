@@ -199,11 +199,8 @@ class Tokenizer:
     @property
     @functools.lru_cache
     def unicode(self) -> dict[int, str]:
-        """Generate an ASCII map with printable characters and Unicode hex for non-printables."""
-        return {
-            cp: chr(cp) if chr(cp).isprintable() else f"\\u{cp:04x}"
-            for cp in range(256)
-        }
+        # exact bijection: 0..255 -> single Unicode char (Latin-1 is perfect)
+        return {b: chr(b) for b in range(256)}
 
     @property
     @functools.lru_cache
