@@ -125,12 +125,19 @@ class Model:
 
 
 class Tokenizer:
-    def __init__(self, vocab: dict[str, int]):
+    def __init__(self, vocab: dict[str, int], special: Optional[dict[str, str]] = None):
         self.model = {
             "type": "BPE",
             "version": "0.1.5",
             "vocab": vocab,
             "merges": [],
+            "special": special
+            or {
+                "bos": "<|bos|>",  # beginning of sentence
+                "eos": "<|eos|>",  # end of sentence
+                "pad": "<|pad|>",  # padding token
+                "unk": "<|unk|>",  # unknown token
+            },
         }
 
     def __len__(self) -> int:
@@ -159,6 +166,14 @@ class Tokenizer:
     @merges.setter
     def merges(self, value: list[tuple[str, str]]):
         self.model["merges"] = value
+
+    @property
+    def special(self) -> dict[str, str]:
+        return self.model["special"]
+
+    @special.setter
+    def special(self, value: dict[str, str]):
+        self.model["special"] = value
 
     def invalidate_cache(self) -> None:
         # property objects keep the cached function on .fget
@@ -196,6 +211,18 @@ class Tokenizer:
             self.model = json.load(file)
         self.invalidate_cache()  # clear stale caches
 
+    def _pretty(self, s: str) -> str:
+        out = []
+        for ch in s:
+            o = ord(ch)
+            if 32 <= o < 127 and ch != "\\":
+                out.append(ch)
+            elif ch == "\\":
+                out.append("\\\\")
+            else:
+                out.append(f"\\x{o:02x}")
+        return "".join(out)
+
     @property
     @functools.lru_cache
     def unicode(self) -> dict[int, str]:
@@ -207,15 +234,12 @@ class Tokenizer:
     def tokens(self) -> list[str]:
         # Initialize a set to store tokens
         tokens = set()
-
         # Add all base characters to the tokens set
         tokens.update(self.unicode.values())  # Must include alphabet!
-
         # Iterate over each pair in the learned merges
-        for a, b in self.merges:  # Must include merges!
-            # Join the pair into a single string and add it to the tokens set
-            tokens.add(a + b)
-
+        tokens.update(a + b for a, b in self.merges)  # Must include merges!
+        # Add all special tokens to the tokens set
+        tokens.update(self.special.values())  # Must include special tokens!
         # Assign ids in lexical order
         return sorted(list(tokens))  # Must be sorted!
 
@@ -257,22 +281,22 @@ class Tokenizer:
             scores[t] = -math.log(r + 1) if r is not None else -1e6
         return scores
 
-    def encode(self, text: str) -> list[int]:
+    def encode(
+        self, text: str, add_bos: bool = False, add_eos: bool = False
+    ) -> list[int]:
         # Map text -> byte-to-unicode base tokens
         text = "".join(self.unicode[b] for b in text.encode("utf-8"))
         ids = [self.token_to_id[ch] for ch in text]
-        if not self.ranks:  # quick exit when no merges were learned
-            return ids
 
         # Greedy merges using ranks
-        while True:
+        while self.ranks:  # skip if no merges were learned
             best_rank = None
             best_idx = None
 
             # scan for best pair
             for i in range(len(ids) - 1):
-                tok_a = self.id_to_token[ids[i]]
-                tok_b = self.id_to_token[ids[i + 1]]
+                tok_a = self.id_to_token.get(ids[i], self.special["unk"])
+                tok_b = self.id_to_token.get(ids[i + 1], self.special["unk"])
                 merged = tok_a + tok_b
                 rank = self.ranks.get(merged)
                 if rank is not None and (best_rank is None or rank < best_rank):
@@ -282,12 +306,17 @@ class Tokenizer:
             if best_idx is None:
                 break  # no more merges
 
-            # merge
+            # merge (@todo should handle missing tokens)
             tok_a = self.id_to_token[ids[best_idx]]
             tok_b = self.id_to_token[ids[best_idx + 1]]
             merged = tok_a + tok_b
             ids[best_idx] = self.token_to_id[merged]
             del ids[best_idx + 1]
+
+        if add_bos:
+            ids.insert(0, self.token_to_id[self.special["bos"]])
+        if add_eos:
+            ids.append(self.token_to_id[self.special["eos"]])
 
         return ids
 
@@ -303,6 +332,8 @@ def main():
     parser.add_argument("-s", "--save", default=None, type=str)
     parser.add_argument("-l", "--load", default=None, type=str)
     parser.add_argument("-p", "--prompt", default="Hello, world!", type=str)
+    parser.add_argument("-b", "--bos", action="store_true")
+    parser.add_argument("-e", "--eos", action="store_true")
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
 
@@ -330,7 +361,7 @@ def main():
 
     if tokenizer:
         print("Prompt:")
-        ids = tokenizer.encode(args.prompt)
+        ids = tokenizer.encode(args.prompt, args.bos, args.eos)
         print(f"encoded: {ids}")
         print(f"decoded: {tokenizer.decode(ids)}")
     else:
