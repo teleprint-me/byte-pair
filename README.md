@@ -93,6 +93,7 @@ Thanks to Lei Mao for the tutorial that helped shape this implementation.
 - [A New Algorithm for Data Compression Optimization](https://arxiv.org/abs/1209.1045)
 - [Neural Machine Translation of Rare Words with Subword Units](https://arxiv.org/abs/1508.07909)
 - [Byte Pair Encoding](https://leimao.github.io/blog/Byte-Pair-Encoding/)
+- [Better language models and their implications](https://openai.com/index/better-language-models/)
 - [A Formal Perspective on Byte-Pair Encoding](https://arxiv.org/abs/2306.16837)
 - [A Statistical Extension of Byte-Pair Encoding](https://paperswithcode.com/paper/a-statistical-extension-of-byte-pair-encoding)
 - [Byte Pair Encoding is Suboptimal for Language Model Pretraining](https://arxiv.org/abs/2004.03720v2)
