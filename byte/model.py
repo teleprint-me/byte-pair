@@ -20,6 +20,8 @@ import argparse
 import functools
 import json
 import math
+import os
+from pathlib import Path
 from typing import Optional
 
 
@@ -27,9 +29,19 @@ class Vocab:
     @staticmethod
     def file(path: Optional[str] = None) -> str:
         """Read text from plain text file."""
-        if path:
+
+        if path and Path(path).is_file():
             with open(path, "r", encoding="utf-8") as f:
                 return f.read()
+
+        if path and Path(path).is_dir():
+            content = ""
+            for obj in os.listdir(path):
+                with open(Path(path) / obj, "r", encoding="utf-8") as f:
+                    content += f.read() + "\n"  # add newline after each file
+            return content
+
+        # default text if no path provided
         return "lo low lower newest wide wider widest"
 
     @staticmethod
