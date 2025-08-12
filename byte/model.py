@@ -217,7 +217,7 @@ class Tokenizer:
         # Iterate over each pair in the learned merges
         for a, b in self.merges:  # Must include merges!
             # Join the pair into a single string and add it to the tokens set
-            tokens.add("".join(a + b))
+            tokens.add(a + b)
 
         # Assign ids in lexical order
         return sorted(list(tokens))  # Must be sorted!
