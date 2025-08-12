@@ -1,84 +1,71 @@
-# Byte Pair Encoding
+# Byte-Pair
 
 ## Overview
 
-The Byte-Pair Encoder (BPE) is a powerful tokenization method widely used in
-natural language processing. This Python implementation of BPE is inspired by
-the paper
-[Neural Machine Translation of Rare Words with Subword Units](https://arxiv.org/abs/1508.07909v5)
-and guided by
-[Lei Mao's educational tutorial](https://leimao.github.io/blog/Byte-Pair-Encoding/).
+The Byte-Pair Encoder (BPE) is a tokenization method widely used in natural
+language processing. This Python implementation is based on the paper
+[**Neural Machine Translation of Rare Words with Subword Units**](https://arxiv.org/abs/1508.07909v5)
+and influenced by
+[Lei Mao's tutorial](https://leimao.github.io/blog/Byte-Pair-Encoding/).
 
 ## Features
 
-- **Tokenization**: Efficient tokenization using Byte-Pair Encoding.
-- **Vocabulary Management**: Tools for managing and analyzing vocabulary.
-- **Token Pair Frequency**: Calculate token pair frequencies for subword units.
+- **Tokenization** — Perform tokenization using the Byte-Pair Encoding
+  algorithm.
+- **Vocabulary Management** — Build, analyze, and persist vocabularies.
+- **Pair Frequency Analysis** — Calculate frequencies of token pairs for
+  subword learning.
 
-## Getting Started
-
-To get started with Byte-Pair Encoder, follow these simple steps:
+## Installation
 
 1. **Clone the Repository**
 
-```sh
-git clone https://github.com/teleprint-me/byte-pair.git
-cd byte-pair
-```
+   ```sh
+   git clone https://github.com/teleprint-me/byte-pair.git
+   cd byte-pair
+   ```
 
-2. **Install Dependencies**
+2. **Set Up a Virtual Environment**
 
-```sh
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
+   ```sh
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
 
-3. **Run the Code**
+## Quick Start
 
-### Dry Run
-
-- **Verbose Output**: Run the model with verbose output to see detailed
-  information during execution.
+### Dry Run with Verbose Output
 
 ```sh
 python -m byte.model -c samples/simple.md -m 15 -v
 ```
 
-### Persist the Model
-
-- **Save Tokenizer**: Persist the model to a JSON file for later use.
+### Save a Trained Tokenizer
 
 ```sh
-python -m byte.model --save tokenizer.json -c samples/simple.md -m 200
+python -m byte.model --save tokenizer.json -c samples/simple.md -m 20
 ```
 
-- **Process Directory**: Process a directory of plain text files.
+### Process an Entire Directory
 
 ```sh
-python -m byte.model --save tokenizer.json -c samples -m 200
+python -m byte.model --save tokenizer.json -c samples -m 2500
 ```
 
-## Load the Model
-
-- **Load Tokenizer**: Load the model from a JSON file and verify its
-  functionality.
+### Load and Inspect a Tokenizer
 
 ```sh
 python -m byte.model --load tokenizer.json -v
 ```
 
-## Predict Token Pairs
-
-- **Predict Tokens**: Predict token pairs for a given text.
+### Predict Token Pairs for Text
 
 ```sh
 python -m byte.model --load tokenizer.json -p "Hello, world!" -v
 ```
 
-## Usage
-
-For comprehensive usage instructions and options, consult the documentation:
+### Show Full CLI Options
 
 ```sh
 python -m byte.model -h
@@ -86,22 +73,20 @@ python -m byte.model -h
 
 ## Contributing
 
-Contributions are welcome! If you have suggestions, bug reports, or
-improvements, please don't hesitate to submit issues or pull requests.
+Issues, feature suggestions, and pull requests are welcome. See the
+[LICENSE](LICENSE) file for full licensing terms.
 
 ## License
 
-This project is licensed under the AGPL (GNU Affero General Public License).
-For detailed information, see the [LICENSE](LICENSE) file.
+This project is licensed under the GNU Affero General Public License (AGPL).
 
 ## Acknowledgments
 
-Special thanks to Lei Mao for the blog tutorial that inspired this
-implementation.
+Thanks to Lei Mao for the tutorial that helped shape this implementation.
 
 ## References
 
-- [On Computable Numbers, with an application to the Entscheidungsproblem](https://archive.org/details/Turing1936OnCumputableNumbers)
+- [On Computable Numbers, with an Application to the Entscheidungsproblem](https://archive.org/details/Turing1936OnCumputableNumbers)
 - [Prediction and Entropy of Printed English](https://archive.org/details/bstj30-1-50)
 - [A New Algorithm for Data Compression Optimization](https://arxiv.org/abs/1209.1045)
 - [Neural Machine Translation of Rare Words with Subword Units](https://arxiv.org/abs/1508.07909)
