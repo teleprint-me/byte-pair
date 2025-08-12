@@ -276,10 +276,8 @@ class Tokenizer:
         return ids
 
     def decode(self, ids: list[int]) -> str:
-        text = ""
-        for i in ids:
-            text += self.id_to_token.get(i, "�")  # unk token
-        return text
+        stream = "".join(self.id_to_token.get(i, "�") for i in ids)
+        return bytes(ord(ch) for ch in stream).decode("utf-8", errors="replace")
 
 
 def main():
