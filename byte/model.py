@@ -186,9 +186,11 @@ class Tokenizer:
     @property
     @functools.lru_cache
     def unicode(self) -> dict[int, str]:
-        """Generate a ASCII map."""
-        cpts = [cp for cp in range(256)]  # ascii base
-        return {cp: chr(cp) for cp in cpts}  # ascii map
+        """Generate an ASCII map with printable characters and Unicode hex for non-printables."""
+        return {
+            cp: chr(cp) if chr(cp).isprintable() else f"\\u{cp:04x}"
+            for cp in range(256)
+        }
 
     @property
     @functools.lru_cache
