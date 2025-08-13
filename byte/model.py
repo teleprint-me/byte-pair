@@ -276,8 +276,8 @@ class Tokenizer:
     def ranks(self) -> dict[str, int]:
         # required to calculate scores
         ranks = {}
-        for i, pair in enumerate(self.merges):  # must be merges!
-            token = "".join(pair)
+        for i, (a, b) in enumerate(self.merges):  # must be merges!
+            token = a + b
             ranks[token] = i
         return ranks
 
