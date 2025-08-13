@@ -288,7 +288,7 @@ class Tokenizer:
         scores = {}
         for t in self.tokens:  # must be tokens!
             r = self.ranks.get(t)
-            scores[t] = -math.log(r + 1) if r is not None else -1e6
+            scores[t] = -math.log(r + 1) if r is not None else float("-inf")
         return scores
 
     def encode(
@@ -300,7 +300,7 @@ class Tokenizer:
 
         # Greedy merges using ranks
         while self.ranks:  # skip if no merges were learned
-            best_rank = None
+            best_score = float("-inf")
             best_idx = None
 
             # scan for best pair
@@ -308,9 +308,9 @@ class Tokenizer:
                 tok_a = self.id_to_token.get(ids[i], self.special["unk"])
                 tok_b = self.id_to_token.get(ids[i + 1], self.special["unk"])
                 merged = tok_a + tok_b
-                rank = self.ranks.get(merged)
-                if rank is not None and (best_rank is None or rank < best_rank):
-                    best_rank = rank
+                score = self.scores.get(merged, float("-inf"))
+                if score > best_score:
+                    best_score = score
                     best_idx = i
 
             if best_idx is None:
