@@ -3,3 +3,5 @@ isort
 black
 flake8
 pytest
+pyarrow
+pandas
