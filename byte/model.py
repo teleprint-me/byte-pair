@@ -363,13 +363,10 @@ def main():
     if args.verbose:
         tokenizer.dump()
 
-    if tokenizer:
-        print("Prompt:")
-        ids = tokenizer.encode(args.prompt, args.bos, args.eos)
-        print(f"encoded: {ids}")
-        print(f"decoded: {tokenizer.decode(ids)}")
-    else:
-        print("Use --load or --save to initialize a model!")
+    print("Prompt:")
+    ids = tokenizer.encode(args.prompt, args.bos, args.eos)
+    print(f"encoded: {ids}")
+    print(f"decoded: {tokenizer.decode(ids)}")
 
 
 if __name__ == "__main__":
