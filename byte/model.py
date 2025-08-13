@@ -128,7 +128,7 @@ class Tokenizer:
     def __init__(self, vocab: dict[str, int], special: Optional[dict[str, str]] = None):
         self.model = {
             "type": "BPE",
-            "version": "0.1.5",
+            "version": "0.1.6",
             "vocab": vocab,
             "merges": [],
             "special": special
