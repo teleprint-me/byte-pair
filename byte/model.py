@@ -211,17 +211,27 @@ class Tokenizer:
             self.model = json.load(file)
         self.invalidate_cache()  # clear stale caches
 
-    def _pretty(self, s: str) -> str:
+    def pretty(self, s: str) -> str:
         out = []
         for ch in s:
-            o = ord(ch)
-            if 32 <= o < 127 and ch != "\\":
+            if ch.isprintable():
                 out.append(ch)
-            elif ch == "\\":
-                out.append("\\\\")
             else:
-                out.append(f"\\x{o:02x}")
+                out.append(f"\\x{ord(ch):02x}")
         return "".join(out)
+
+    def dump(self) -> None:
+        # Dump the model parts
+        print("Model:")
+        model = self.model.copy()  # don't modify the original model!
+        model["vocab_size"] = self.vocab_size
+        model["num_merges"] = self.num_merges
+        print(json.dumps(model, indent=2, ensure_ascii=False))
+        # Dump the tokenizer
+        print(f"Tokenizer (size={len(self)}):")
+        view = {self.pretty(k): v for k, v in self.token_to_id.items()}
+        for k, v in sorted(view.items(), key=lambda kv: kv[1]):  # sort by id, not token
+            print(json.dumps(k), ":", v)
 
     @property
     @functools.lru_cache
@@ -351,13 +361,7 @@ def main():
         tokenizer.save(args.save)
 
     if args.verbose:
-        print("Model:")
-        model = tokenizer.model
-        model["vocab_size"] = tokenizer.vocab_size
-        model["num_merges"] = tokenizer.num_merges
-        print(json.dumps(model, indent=2, ensure_ascii=False))
-        print(f"Tokenizer (size={len(tokenizer)}):")
-        print(json.dumps(tokenizer.token_to_id, indent=2, ensure_ascii=False))
+        tokenizer.dump()
 
     if tokenizer:
         print("Prompt:")
