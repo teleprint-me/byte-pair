@@ -298,8 +298,8 @@ class Tokenizer:
         text = "".join(self.unicode[b] for b in text.encode("utf-8"))
         ids = [self.token_to_id[ch] for ch in text]
 
-        # Greedy merges using ranks
-        while self.ranks:  # skip if no merges were learned
+        # Greedy merges using scores
+        while self.scores:  # skip if no merges were learned
             best_score = float("-inf")
             best_idx = None
 
