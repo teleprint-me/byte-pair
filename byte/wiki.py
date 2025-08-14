@@ -4,6 +4,8 @@
 """
 
 import argparse
+import os
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -38,16 +40,17 @@ def parse_args() -> argparse.Namespace:
         description="Download and tokenize Wikipedia data."
     )
     parser.add_argument(
-        "--part",
-        type=str,
-        required=False,
-        help="Name of the part to download.",
-    )
-    parser.add_argument(
-        "--parquet",
+        "--output-dir",
         type=str,
         required=True,
-        help="Path to save the parquet file.",
+        help="Path to save the parquet files to.",
+    )
+    parser.add_argument(
+        "--num-parts",
+        type=int,
+        required=False,
+        default=1,
+        help="Number of parquet file parts to download.",
     )
     parser.add_argument(
         "--num-samples",
@@ -76,30 +79,48 @@ def main():
     args = parse_args()
 
     url = "https://huggingface.co/datasets/wikimedia/wikipedia/resolve/main/20231101.en"
-    part = args.part or "train-00000-of-00041.parquet"
-    path = Path(args.parquet)
-    if not path.is_file():
-        download(f"{url}/{part}", path)
+    parts = ["train-00000-of-00041.parquet"]  # default part
 
-    print(f"Loading {path}")
-    with open(path, "rb") as f:
-        df = pd.read_parquet(f)
+    # split the base string using re.findall()
+    if args.num_parts > 1:
+        # split at each word, hyphen, or period
+        # e.g. ['train', '-', '00000', '-', 'of', '-', '00041', '.', 'parquet']
+        split = re.findall(r"\w+|-|.", args.part)
+        # Get the final part as an integer
+        last = int(split[6])  # max of 41 parts
+        # Build the new parts list
+        for i in range(1, args.num_parts + 1):  # inclusive?
+            parts.append(f"train-{i:05d}-of-{last:05d}.parquet")
 
-    print(df.head())
-    print(df.info())
-    print(df.describe())
-    print(df.columns)
+    os.makedirs(args.output_dir, exist_ok=True)
+    for part in parts:
+        print(f"Downloading {part}...")
+        path = Path(args.output_dir) / part
+        if not path.is_file():
+            download(f"{url}/{part}", path)
 
-    print("Sampling text...")
-    text = ""
-    for i, sample in enumerate(df["text"].sample(n=args.num_samples)):
-        text += sample + "\n"
-        print(f"Sample {i + 1}: {sample}")
-    print("Done!")
+    # need to compile corpus for training
+    corpus = ""  # corpus is just a blob of text
+    print("Building corpus for training...")
+    for part in parts:
+        path = Path(args.output_dir) / part
+        print(f"Processing {path}...")
+        with open(path, "rb") as f:
+            df = pd.read_parquet(f)
 
-    vocab = Vocab.tokenize(text)
+        if "text" not in df.columns:
+            raise ValueError(f"Column 'text' not found in DataFrame {path}")
+
+        # Not sure if I should sample all samples or just a subset
+        samples = df["text"].sample(n=args.num_samples)
+        corpus += "\n".join(samples)
+        print(f"Processed {len(samples)} samples")
+    print("Corpus built successfully!")
+
+    # tokenize the corpus
+    vocab = Vocab.tokenize(corpus)
     tokenizer = Tokenizer(vocab)
-    print("Tokenizer loaded successfully!")
+    print("Tokenizer initialized!")
 
     tokenizer.train(args.num_merges)
     print("Model trained successfully!")
@@ -113,7 +134,7 @@ def main():
     ids = tokenizer.encode(encode)
     print("Encoded text:", ids)
     print("Decoded text:", tokenizer.decode(ids))
-    print("Tokenizer loaded successfully!")
+    print("Encoding/decoding roundtrip successful.")
 
 
 if __name__ == "__main__":
