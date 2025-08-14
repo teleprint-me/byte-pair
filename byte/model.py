@@ -272,6 +272,22 @@ class Tokenizer:
         return {idx: token for idx, token in enumerate(self.tokens)}
 
     @property
+    def bos_id(self) -> int:
+        return self.token_to_id.get(self.special.get("bos"), -1)
+
+    @property
+    def eos_id(self) -> int:
+        return self.token_to_id.get(self.special.get("eos"), -1)
+
+    @property
+    def pad_id(self) -> int:
+        return self.token_to_id.get(self.special.get("pad"), -1)
+
+    @property
+    def unk_id(self) -> int:
+        return self.token_to_id.get(self.special.get("unk"), -1)
+
+    @property
     @functools.lru_cache
     def ranks(self) -> dict[str, int]:
         # required to calculate scores
@@ -324,9 +340,9 @@ class Tokenizer:
             del ids[best_idx + 1]
 
         if add_bos:
-            ids.insert(0, self.token_to_id[self.special["bos"]])
+            ids.insert(0, self.bos_id)
         if add_eos:
-            ids.append(self.token_to_id[self.special["eos"]])
+            ids.append(self.eos_id)
 
         return ids
 
