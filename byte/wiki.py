@@ -13,20 +13,23 @@ import requests
 from byte.model import Tokenizer, Vocab
 
 
-def download(url: str, path: str) -> Path:
+def download(url: str, path: Path):
     # download a parquet file from huggingface and save it locally
     response = requests.get(url, stream=True)  # ?download=true
     response.raise_for_status()
-    total_size = 0
-    print(f"Downloading {url} to {path}")
+    total_size = int(response.headers.get("Content-Length", 0))
+    downloaded_size = 0
+    chunk_size = 8192  # 8KB chunks
+    print(f"Downloading {total_size} bytes from {url} to {path}")
     with open(path, "wb") as f:
-        for chunk in response.iter_content(chunk_size=8192):
+        for chunk in response.iter_content(chunk_size=chunk_size):
             if chunk:
-                total_size += len(chunk)
+                downloaded_size += len(chunk)
                 f.write(chunk)
-                print(f"Downloaded {total_size} bytes")
+                interval = downloaded_size // total_size * 100
+                if interval % 10:  # interval between 0 and 10
+                    print(f"[{interval}] Downloaded {downloaded_size} bytes")
     print(f"Download complete! {path}")
-    return Path(path)
 
 
 def parse_args() -> argparse.Namespace:
@@ -34,34 +37,50 @@ def parse_args() -> argparse.Namespace:
         description="Download and tokenize Wikipedia data."
     )
     parser.add_argument(
-        "--part", type=str, required=False, help="Name of the part to download."
+        "--part",
+        type=str,
+        required=False,
+        help="Name of the part to download.",
     )
     parser.add_argument(
-        "--path", type=str, required=True, help="Path to save the parquet file."
+        "--parquet",
+        type=str,
+        required=True,
+        help="Path to save the parquet file.",
+    )
+    parser.add_argument(
+        "--num-samples",
+        type=int,
+        required=False,
+        default=10,
+        help="Number of samples to write.",
+    )
+    parser.add_argument(
+        "--num-merges",
+        type=int,
+        required=False,
+        default=10,
+        help="Number of merges to perform.",
+    )
+    parser.add_argument(
+        "--save",
+        type=str,
+        required=True,
+        help="Path to save the model.",
     )
     return parser.parse_args()
 
 
-# RangeIndex: 156289 entries, 0 to 156288
-# Data columns (total 4 columns):
-#  #   Column  Non-Null Count   Dtype
-# ---  ------  --------------   -----
-#  0   id      156289 non-null  object
-#  1   url     156289 non-null  object
-#  2   title   156289 non-null  object
-#  3   text    156289 non-null  object
-# dtypes: object(4)
-# memory usage: 4.8+ MB
 def main():
     args = parse_args()
 
     url = "https://huggingface.co/datasets/wikimedia/wikipedia/resolve/main/20231101.en"
     part = args.part or "train-00000-of-00041.parquet"
-    path = Path(args.path)
+    path = Path(args.parquet)
     if not path.is_file():
-        path = download(f"{url}/{part}", args.path)
-    print(f"Loaded {path}")
+        download(f"{url}/{part}", path)
 
+    print(f"Loading {path}")
     with open(path, "rb") as f:
         df = pd.read_parquet(f)
 
@@ -70,8 +89,30 @@ def main():
     print(df.describe())
     print(df.columns)
 
-    for text in df["text"].sample(n=100):
-        print(text)
+    print("Sampling text...")
+    text = ""
+    for i, sample in enumerate(df["text"].sample(n=args.num_samples)):
+        text += sample + "\n"
+        print(f"Sample {i + 1}: {sample}")
+    print("Done!")
+
+    vocab = Vocab.tokenize(text)
+    tokenizer = Tokenizer(vocab)
+    print("Tokenizer loaded successfully!")
+
+    tokenizer.train(args.num_merges)
+    print("Model trained successfully!")
+
+    tokenizer.save(args.save)
+    print(f"Tokenizer with {len(tokenizer)} tokens saved to {args.save}")
+
+    encode = "Hello, world"  # example text to encode
+    print(f"Encoding text: {encode}")
+
+    ids = tokenizer.encode(encode)
+    print("Encoded text:", ids)
+    print("Decoded text:", tokenizer.decode(ids))
+    print("Tokenizer loaded successfully!")
 
 
 if __name__ == "__main__":
