@@ -14,21 +14,23 @@ from byte.model import Tokenizer, Vocab
 
 
 def download(url: str, path: Path):
-    # download a parquet file from huggingface and save it locally
-    response = requests.get(url, stream=True)  # ?download=true
+    response = requests.get(url, stream=True)
     response.raise_for_status()
     total_size = int(response.headers.get("Content-Length", 0))
     downloaded_size = 0
-    chunk_size = 8192  # 8KB chunks
+    chunk_size = 8192
+    last_print = -1  # So 0% will print
+
     print(f"Downloading {total_size} bytes from {url} to {path}")
     with open(path, "wb") as f:
         for chunk in response.iter_content(chunk_size=chunk_size):
             if chunk:
-                downloaded_size += len(chunk)
                 f.write(chunk)
-                interval = downloaded_size // total_size * 100
-                if interval % 10:  # interval between 0 and 10
-                    print(f"[{interval}] Downloaded {downloaded_size} bytes")
+                downloaded_size += len(chunk)
+                percent = int((downloaded_size / total_size) * 100) if total_size else 0
+                if percent // 10 > last_print // 10:
+                    print(f"[{percent}%] Downloaded {downloaded_size} bytes")
+                    last_print = percent
     print(f"Download complete! {path}")
 
 
