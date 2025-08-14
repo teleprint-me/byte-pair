@@ -363,7 +363,8 @@ def main():
     if args.verbose:
         tokenizer.dump()
 
-    print("Prompt:")
+    print(f"Tokenizer (size={len(tokenizer)})")
+    print(f"Prompt: {args.prompt}")
     ids = tokenizer.encode(args.prompt, args.bos, args.eos)
     print(f"encoded: {ids}")
     print(f"decoded: {tokenizer.decode(ids)}")
